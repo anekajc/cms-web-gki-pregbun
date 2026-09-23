@@ -9,9 +9,12 @@ class PelayananSeeder extends Seeder
 {
     public function run(): void
     {
-        // Fixed set of ministries shown as tabs on the Pelayanan page. Slugs are
-        // the permanent identity; title/subtitle/description/image are editable
-        // in the CMS. updateOrCreate keeps existing edits when reseeded.
+        // Initial set of ministries shown as tabs on the Pelayanan page. Slugs
+        // are the permanent identity; title (Nama) is edited in Master >
+        // Pelayanan, subtitle/description/image/detail cards in the Pelayanan
+        // page itself. Rows can now be freely added/renamed/deleted/reordered
+        // in Master > Pelayanan — this seeder only bootstraps the original 4.
+        // updateOrCreate keeps existing edits when reseeded.
         $items = [
             [
                 'slug' => 'konseling-anugerah',

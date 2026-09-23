@@ -83,4 +83,6 @@ require __DIR__.'/auth.php';
 require __DIR__.'/tentang-kami.php';
 require __DIR__.'/pembangunan.php';
 require __DIR__.'/pelayanan.php';
+require __DIR__.'/master.php';
+require __DIR__.'/bajem-benowo.php';
 require __DIR__.'/user.php';

@@ -1,6 +1,6 @@
+import InputError from '@/components/input-error';
 import ImageCropperDialog from '@/components/kebaktian/image-cropper-dialog';
 import SortableImageGrid from '@/components/kebaktian/sortable-image-grid';
-import InputError from '@/components/input-error';
 import DetailCardsEditor, { type DetailItem, type DetailPayload } from '@/components/pelayanan/detail-cards-editor';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -40,16 +40,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const ASPECT = 4 / 3;
 
-// Fixed tab labels keyed by slug — stay constant even if the editable Judul changes.
-const TAB_LABELS: Record<string, string> = {
-    'konseling-anugerah': 'Konseling Anugerah',
-    poliklinik: 'Poliklinik',
-    beasiswa: 'Beasiswa',
-    'rumah-singgah-mawari': 'Rumah Singgah Mawari',
-};
-
-const tabLabel = (item: PelayananItem) => TAB_LABELS[item.slug] ?? item.title;
-
 export default function PelayananPage({ pelayanan, maxImages }: { pelayanan: PelayananItem[]; maxImages: number }) {
     const [activeSlug, setActiveSlug] = useState<string>(pelayanan[0]?.slug ?? '');
     const active = pelayanan.find((p) => p.slug === activeSlug) ?? pelayanan[0];
@@ -61,7 +51,13 @@ export default function PelayananPage({ pelayanan, maxImages }: { pelayanan: Pel
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Pelayanan</h1>
-                    <p className="text-sm text-muted-foreground">Kelola gambar dan informasi untuk tiap jenis pelayanan.</p>
+                    <p className="text-muted-foreground text-sm">
+                        Kelola gambar dan informasi untuk tiap pelayanan. Tambah, ubah nama, hapus, atau atur urutannya di{' '}
+                        <a href={route('master.pelayanan')} className="underline underline-offset-2">
+                            Master &gt; Pelayanan
+                        </a>
+                        .
+                    </p>
                 </div>
 
                 <div className="flex flex-wrap gap-1 border-b">
@@ -73,10 +69,10 @@ export default function PelayananPage({ pelayanan, maxImages }: { pelayanan: Pel
                                 'border-b-2 px-4 py-2 text-sm font-medium transition-colors',
                                 active?.slug === p.slug
                                     ? 'border-primary text-foreground'
-                                    : 'border-transparent text-muted-foreground hover:text-foreground',
+                                    : 'text-muted-foreground hover:text-foreground border-transparent',
                             )}
                         >
-                            {tabLabel(p)}
+                            {p.title}
                         </button>
                     ))}
                 </div>
@@ -84,8 +80,12 @@ export default function PelayananPage({ pelayanan, maxImages }: { pelayanan: Pel
                 {active ? (
                     <PelayananEditor key={active.id} item={active} maxImages={maxImages} />
                 ) : (
-                    <div className="rounded-lg border border-dashed py-10 text-center text-sm text-muted-foreground">
-                        Belum ada data pelayanan. Jalankan seeder untuk membuat tab pelayanan.
+                    <div className="text-muted-foreground rounded-lg border border-dashed py-10 text-center text-sm">
+                        Belum ada pelayanan. Tambahkan di{' '}
+                        <a href={route('master.pelayanan')} className="underline underline-offset-2">
+                            Master &gt; Pelayanan
+                        </a>
+                        .
                     </div>
                 )}
             </div>
@@ -95,7 +95,6 @@ export default function PelayananPage({ pelayanan, maxImages }: { pelayanan: Pel
 
 function PelayananEditor({ item, maxImages }: { item: PelayananItem; maxImages: number }) {
     const { data, setData, put, processing, errors, recentlySuccessful } = useForm({
-        title: item.title,
         subtitle: item.subtitle,
         description: item.description,
     });
@@ -142,11 +141,7 @@ function PelayananEditor({ item, maxImages }: { item: PelayananItem; maxImages: 
 
     const saveDetails = (payload: DetailPayload[]) => {
         setSavingDetails(true);
-        router.put(
-            route('pelayanan.details.sync', item.id),
-            { details: payload },
-            { preserveScroll: true, onFinish: () => setSavingDetails(false) },
-        );
+        router.put(route('pelayanan.details.sync', item.id), { details: payload }, { preserveScroll: true, onFinish: () => setSavingDetails(false) });
     };
 
     const atMax = item.images.length >= maxImages;
@@ -163,16 +158,14 @@ function PelayananEditor({ item, maxImages }: { item: PelayananItem; maxImages: 
                             <Plus className="h-4 w-4" /> {uploading ? 'Mengunggah...' : 'Tambah Gambar'}
                         </Button>
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                         Seret untuk mengatur urutan. Gambar pertama menjadi foto utama. {atMax && 'Batas gambar tercapai.'}
                     </p>
 
                     {item.images.length > 0 ? (
                         <SortableImageGrid images={item.images} onReorder={reorder} onDelete={deleteImage} />
                     ) : (
-                        <div className="rounded-lg border border-dashed py-10 text-center text-sm text-muted-foreground">
-                            Belum ada gambar.
-                        </div>
+                        <div className="text-muted-foreground rounded-lg border border-dashed py-10 text-center text-sm">Belum ada gambar.</div>
                     )}
 
                     <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onPickFile} />
@@ -190,16 +183,15 @@ function PelayananEditor({ item, maxImages }: { item: PelayananItem; maxImages: 
             <Card className="lg:col-span-3">
                 <CardContent className="space-y-4 p-6">
                     <form onSubmit={submit} className="space-y-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="title">Judul</Label>
-                            <Input
-                                id="title"
-                                value={data.title}
-                                onChange={(e) => setData('title', e.target.value)}
-                                placeholder="Konseling Anugerah"
-                                required
-                            />
-                            <InputError message={errors.title} />
+                        <div className="grid gap-1">
+                            <span className="text-sm font-medium">Nama</span>
+                            <p className="text-muted-foreground text-sm">
+                                {item.title} — ubah di{' '}
+                                <a href={route('master.pelayanan')} className="underline underline-offset-2">
+                                    Master &gt; Pelayanan
+                                </a>
+                                .
+                            </p>
                         </div>
 
                         <div className="grid gap-2">
@@ -222,16 +214,16 @@ function PelayananEditor({ item, maxImages }: { item: PelayananItem; maxImages: 
                                 value={data.description}
                                 onChange={(e) => setData('description', e.target.value)}
                                 placeholder="Tekan Enter untuk paragraf baru."
-                                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden"
+                                className="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring flex w-full rounded-md border px-3 py-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:outline-hidden"
                             />
                             <InputError message={errors.description} />
                         </div>
 
                         <div className="flex items-center gap-3">
-                            <Button type="submit" disabled={processing || !data.title || !data.subtitle || !data.description}>
+                            <Button type="submit" disabled={processing || !data.subtitle || !data.description}>
                                 Simpan Informasi
                             </Button>
-                            {recentlySuccessful && <span className="text-sm text-muted-foreground">Tersimpan</span>}
+                            {recentlySuccessful && <span className="text-muted-foreground text-sm">Tersimpan</span>}
                         </div>
                     </form>
                 </CardContent>
@@ -241,7 +233,7 @@ function PelayananEditor({ item, maxImages }: { item: PelayananItem; maxImages: 
                 <CardContent className="space-y-3 p-6">
                     <div>
                         <h3 className="font-semibold">Kartu Detail</h3>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-muted-foreground text-sm">
                             Label tebal + isi (mis. KONSELOR, JADWAL, LOKASI). Seret untuk mengatur urutan.
                         </p>
                     </div>

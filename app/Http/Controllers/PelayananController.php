@@ -14,16 +14,14 @@ class PelayananController extends Controller
     private const MAX_IMAGES = 5;
 
     /**
-     * The fixed set of ministries rendered as tabs. Seeded by PelayananSeeder;
-     * not addable/removable from the CMS — only their content is editable.
+     * Every ministry, in Master-defined order. Rows themselves are managed
+     * (added/renamed/deleted/reordered) in Master › Pelayanan; this page only
+     * edits each one's content.
      */
-    private const SLUGS = ['konseling-anugerah', 'poliklinik', 'beasiswa', 'rumah-singgah-mawari'];
-
     public function index()
     {
         return Inertia::render('pelayanan', [
             'pelayanan' => Pelayanan::with(['images', 'details'])
-                ->whereIn('slug', self::SLUGS)
                 ->orderBy('order')
                 ->orderBy('id')
                 ->get(),
@@ -34,9 +32,8 @@ class PelayananController extends Controller
     public function update(Request $request, Pelayanan $pelayanan)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'subtitle' => 'required|string|max:255',
-            'description' => 'required|string',
+            'subtitle' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
         ]);
 
         $pelayanan->update($validated);

@@ -3,7 +3,19 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, UsersRound, CalendarArrowUp, HandHeart, List, Ban, Hammer, UserRoundPen, Church, HandCoins } from 'lucide-react';
+import {
+    Building2,
+    CalendarArrowUp,
+    Church,
+    Database,
+    Hammer,
+    HandCoins,
+    HandHeart,
+    LayoutDashboard,
+    List,
+    UserRoundPen,
+    UsersRound,
+} from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -38,6 +50,11 @@ const mainNavItems: NavItem[] = [
         icon: HandHeart,
     },
     {
+        title: 'Bajem Benowo',
+        url: '/bajem-benowo',
+        icon: Building2,
+    },
+    {
         title: 'Komisi',
         url: '/komisi',
         icon: List,
@@ -57,6 +74,15 @@ const mainNavItems: NavItem[] = [
     //     url: '/dummy',
     //     icon: Ban,
     // },
+];
+
+// Master data: source lists that feature pages' tabs/options are built from.
+const masterNavItems: NavItem[] = [
+    {
+        title: 'Pelayanan',
+        url: '/master/pelayanan',
+        icon: Database,
+    },
 ];
 
 // const footerNavItems: NavItem[] = [
@@ -95,6 +121,7 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMain items={navItems} />
+                <NavMain items={masterNavItems} label="Master" />
             </SidebarContent>
 
             <SidebarFooter>
