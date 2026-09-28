@@ -9,7 +9,7 @@ use App\Http\Controllers\WartaController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-// Landing page renders the login screen (welcome page is no longer used).
+// Landing page renders the login screen (there is no public welcome page).
 Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('home');
 
 Route::middleware(['auth'])->group(function () {

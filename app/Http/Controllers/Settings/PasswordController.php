@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Support\Username;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,19 +30,44 @@ class PasswordController extends Controller
      */
     public function update(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'current_password' => ['required', 'current_password'],
-            'password' => ['required', Password::defaults(), 'confirmed'],
+        $user = $request->user();
+        $wasForced = $user->must_change_password;
+        $needsUsername = $user->username === null;
+
+        // An existing account that only lacks a username gets a username-only
+        // form; everyone else (including new users) changes their password here.
+        $usernameOnly = $needsUsername && ! $wasForced;
+
+        $rules = [];
+
+        if ($needsUsername) {
+            $request->merge(['username' => Username::normalize($request->input('username'))]);
+            $rules['username'] = Username::rules($user->id);
+        }
+
+        if (! $usernameOnly) {
+            $rules['current_password'] = ['required', 'current_password'];
+            $rules['password'] = ['required', Password::defaults(), 'confirmed'];
+        }
+
+        $validated = $request->validate($rules, [
+            ...Username::messages(),
+            'current_password.required' => 'Password saat ini wajib diisi.',
+            'current_password.current_password' => 'Password saat ini salah.',
+            'password.required' => 'Password baru wajib diisi.',
+            'password.min' => 'Password baru minimal :min karakter.',
+            'password.confirmed' => 'Konfirmasi password baru tidak cocok.',
         ]);
 
-        $wasForced = $request->user()->must_change_password;
-
-        $request->user()->update([
-            'password' => Hash::make($validated['password']),
-            'must_change_password' => false,
+        $user->update([
+            ...($needsUsername ? ['username' => $validated['username']] : []),
+            ...($usernameOnly ? [] : [
+                'password' => Hash::make($validated['password']),
+                'must_change_password' => false,
+            ]),
         ]);
 
-        // A forced user was locked to this page; send them into the app once done.
-        return $wasForced ? redirect()->route('dashboard') : back();
+        // A held user was locked to this page; send them into the app once done.
+        return $wasForced || $needsUsername ? redirect()->route('dashboard') : back();
     }
 }

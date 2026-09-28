@@ -25,6 +25,7 @@ class ActivityRecorder
     private const LABELS = [
         'title' => 'Judul',
         'name' => 'Nama',
+        'username' => 'Username',
         'email' => 'Email',
         'role' => 'Peran',
         'description' => 'Deskripsi',

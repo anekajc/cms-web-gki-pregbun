@@ -39,7 +39,8 @@ class ActivityLogController extends Controller
                 $query->where(fn ($inner) => $inner
                     ->whereRaw('lower(subject) like ?', [$term])
                     ->orWhereRaw('lower(action) like ?', [$term])
-                    ->orWhereRaw('lower(user_name) like ?', [$term]));
+                    ->orWhereRaw('lower(user_name) like ?', [$term])
+                    ->orWhereRaw('lower(user_username) like ?', [$term]));
             })
             ->latest()
             ->latest('id')

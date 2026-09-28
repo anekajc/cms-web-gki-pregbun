@@ -13,6 +13,7 @@ import { useState } from 'react';
 interface UserRow {
     id: number;
     name: string;
+    username: string | null;
     email: string;
     role: 'admin' | 'user';
     generated_password: string | null;
@@ -84,6 +85,7 @@ export default function UserIndex({ users }: { users: UserRow[] }) {
                                 <thead className="border-b text-left text-muted-foreground">
                                     <tr>
                                         <th className="px-4 py-3 font-medium">Nama</th>
+                                        <th className="px-4 py-3 font-medium">Username</th>
                                         <th className="px-4 py-3 font-medium">Email</th>
                                         <th className="px-4 py-3 font-medium">Peran</th>
                                         <th className="px-4 py-3 font-medium">Password</th>
@@ -100,6 +102,13 @@ export default function UserIndex({ users }: { users: UserRow[] }) {
                                                 <td className="px-4 py-3 font-medium">
                                                     {u.name}
                                                     {isSelf && <span className="ml-2 text-xs text-muted-foreground">(Anda)</span>}
+                                                </td>
+                                                <td className="px-4 py-3 text-muted-foreground">
+                                                    {u.username ? (
+                                                        <span className="font-mono">@{u.username}</span>
+                                                    ) : (
+                                                        <span title="Belum dibuat — diminta saat login berikutnya">—</span>
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
                                                 <td className="px-4 py-3">
@@ -186,7 +195,7 @@ export default function UserIndex({ users }: { users: UserRow[] }) {
                                     })}
                                     {users.length === 0 && (
                                         <tr>
-                                            <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
+                                            <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
                                                 Belum ada pengguna.
                                             </td>
                                         </tr>

@@ -16,6 +16,7 @@ npm run dev           # Vite dev server only
 npm run build         # Production build
 npm run build:ssr     # Build with SSR bundle
 npm run lint          # ESLint with --fix over the repo
+npm run types         # TypeScript type check (tsc --noEmit)
 npm run format        # Prettier write over resources/
 npm run format:check  # Prettier check only
 vendor/bin/pint       # PHP code style (Laravel Pint)
@@ -31,7 +32,7 @@ vendor/bin/pest tests/Feature/DashboardTest.php   # Single file
 
 Note: the shell here is PowerShell on Windows. `vendor/bin/pest` / `vendor/bin/pint` resolve via PHP; there is no `.sh` wrapper needed.
 
-CI ([.github/workflows/](.github/workflows/)) runs on push/PR to `main` and `develop`: `lint.yml` runs Pint + `npm run format` + `npm run lint`; `tests.yml` builds assets and runs Pest. Both must pass.
+CI ([.github/workflows/](.github/workflows/)) runs on push/PR to `main` and `develop`: `lint.yml` runs Pint + `npm run format` + `npm run lint` + `npm run types`; `tests.yml` builds assets and runs Pest. Both must pass.
 
 ## Data layer — read this before touching the database
 
@@ -70,7 +71,8 @@ Two exceptions to be aware of: [EventController](app/Http/Controllers/EventContr
 - Users have a `role` column; `admin` is the only privileged value (`User::isAdmin()`). The `admin` middleware alias ([EnsureUserIsAdmin](app/Http/Middleware/EnsureUserIsAdmin.php)) gates [routes/user.php](routes/user.php), and the sidebar independently hides the User nav item for non-admins.
 - Admins create accounts with a **generated password** stored in an `encrypted`-cast `generated_password` column so it can be read back and handed to the user. It is in `$hidden` (so it never leaks via the shared `auth.user` prop) and opted back in with `makeVisible()` on the admin list only. **This is intentional — do not flag it as a security defect.**
 - New users get `must_change_password = 1`. [EnsurePasswordChanged](app/Http/Middleware/EnsurePasswordChanged.php) is appended to the global `web` stack and traps them on `password.edit` until they set their own; add any newly-reachable route to its `ALLOWED` list if a forced user must be able to reach it.
-- `/` renders the login screen, not a landing page. [welcome.tsx](resources/js/pages/welcome.tsx) is unused starter-kit leftover.
+- `/` renders the login screen, not a landing page (the starter kit's welcome page was removed).
+- Users cannot delete their own account — there is no `profile.destroy` route. Only admins delete accounts, from the User page.
 
 ## Frontend architecture
 

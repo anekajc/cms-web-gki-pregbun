@@ -24,6 +24,7 @@ interface Change {
 interface LogEntry {
     id: number;
     user_name: string;
+    user_username: string | null;
     menu: string;
     action: string;
     subject: string | null;
@@ -147,7 +148,7 @@ export default function ActivityLogPage({ logs, filters, users, menus }: Props) 
                         <div className="grid gap-2">
                             <Label htmlFor="filter-q">Cari</Label>
                             <div className="flex gap-2">
-                                <Input id="filter-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Item, aksi, atau nama" />
+                                <Input id="filter-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Item, aksi, nama, atau username" />
                                 {hasFilters && (
                                     <Button
                                         type="button"
@@ -220,6 +221,7 @@ function LogCard({ entry, menuLabel }: { entry: LogEntry; menuLabel: string }) {
                     <div className="min-w-0 space-y-1">
                         <div className="flex flex-wrap items-center gap-2 text-sm">
                             <span className="font-semibold">{entry.user_name}</span>
+                            {entry.user_username && <span className="font-mono text-xs text-muted-foreground">@{entry.user_username}</span>}
                             <Badge variant="secondary">{menuLabel}</Badge>
                         </div>
                         <p className="text-sm">

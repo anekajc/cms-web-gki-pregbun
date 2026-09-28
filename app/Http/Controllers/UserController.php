@@ -15,7 +15,7 @@ class UserController extends Controller
     public function index()
     {
         $users = User::orderBy('name')
-            ->get(['id', 'name', 'email', 'role', 'generated_password', 'created_at'])
+            ->get(['id', 'name', 'username', 'email', 'role', 'generated_password', 'created_at'])
             ->makeVisible('generated_password');
 
         return Inertia::render('user', [

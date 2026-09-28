@@ -34,7 +34,8 @@ export default function UserCreate() {
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Tambah User</h1>
                     <p className="text-sm text-muted-foreground">
-                        Password akan dibuat otomatis (8 karakter). Setelah disimpan, salin password dari daftar dan kirim ke pengguna.
+                        Password akan dibuat otomatis (8 karakter). Setelah disimpan, salin password dari daftar dan kirim ke pengguna. Saat login
+                        pertama, pengguna wajib mengganti password dan membuat username.
                     </p>
                 </div>
 

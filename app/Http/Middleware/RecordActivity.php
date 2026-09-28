@@ -33,6 +33,7 @@ class RecordActivity
             ActivityLog::create([
                 'user_id' => $user->id,
                 'user_name' => $user->name,
+                'user_username' => $user->username,
                 'menu' => $menu,
                 'action' => $label,
                 'subject' => $this->recorder->subject() ?? $this->routeSubject($request),
