@@ -29,7 +29,7 @@ function SortableRow({ item, selected, onSelect }: { item: SortableItemRow; sele
                 {...attributes}
                 {...listeners}
                 type="button"
-                className="text-muted-foreground cursor-grab active:cursor-grabbing"
+                className="text-muted-foreground cursor-grab touch-none active:cursor-grabbing"
                 aria-label="Geser untuk mengatur urutan"
             >
                 <GripVertical className="h-5 w-5" />

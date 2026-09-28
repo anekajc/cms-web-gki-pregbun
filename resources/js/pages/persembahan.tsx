@@ -90,8 +90,8 @@ function HeroImageEditor({ heroImageUrl }: { heroImageUrl: string | null }) {
 
     return (
         <Card>
-            <CardContent className="space-y-4 p-6">
-                <div className="flex items-center justify-between">
+            <CardContent className="space-y-4 p-4 sm:p-6">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                     <h3 className="font-semibold">Gambar Hero</h3>
                     <span className="text-xs text-muted-foreground">Rasio 16:9 disarankan</span>
                 </div>
@@ -141,8 +141,8 @@ function ItemsManager({ items }: { items: PersembahanItem[] }) {
 
     return (
         <Card>
-            <CardContent className="space-y-4 p-6">
-                <div className="flex items-center justify-between">
+            <CardContent className="space-y-4 p-4 sm:p-6">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                     <h2 className="font-semibold">
                         Daftar Item ({filteredItems.length})
                     </h2>
@@ -190,8 +190,8 @@ function ItemsManagerPembangunan({ items }: { items: PersembahanItem[] }) {
 
     return (
         <Card>
-            <CardContent className="space-y-4 p-6">
-                <div className="flex items-center justify-between">
+            <CardContent className="space-y-4 p-4 sm:p-6">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                     <h2 className="font-semibold">
                         Pembangunan
                     </h2>
@@ -343,7 +343,7 @@ function CreatePersembahanForm({ onDone }: { onDone: () => void }) {
 
             <div className="grid gap-2 md:col-span-2">
                 <Label>QR Code (opsional)</Label>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                     <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border bg-muted">
                         {qrPreviewUrl ? (
                             <img src={qrPreviewUrl} alt="" className="h-full w-full object-contain" />

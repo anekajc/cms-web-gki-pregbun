@@ -121,13 +121,13 @@ export default function Pembangunan({
             <Head title="Pembangunan" />
 
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
-                <div className="flex flex-wrap gap-1 border-b">
+                <div className="flex gap-1 overflow-x-auto border-b">
                     {tabs.map((t) => (
                         <button
                             key={t.key}
                             onClick={() => setTab(t.key)}
                             className={cn(
-                                'border-b-2 px-4 py-2 text-sm font-medium transition-colors',
+                                'shrink-0 border-b-2 px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors',
                                 tab === t.key ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground',
                             )}
                         >
@@ -201,7 +201,7 @@ function UpdateTab({ videos, images, maxImages }: { videos: PembangunanVideo[]; 
         <div className="space-y-6">
             {/* YouTube section */}
             <Card>
-                <CardContent className="space-y-4 p-6">
+                <CardContent className="space-y-4 p-4 sm:p-6">
                     <h2 className="font-semibold">Video YouTube</h2>
 
                     {current ? (
@@ -249,7 +249,7 @@ function UpdateTab({ videos, images, maxImages }: { videos: PembangunanVideo[]; 
                                                 href={v.youtube_url}
                                                 target="_blank"
                                                 rel="noreferrer"
-                                                className="block max-w-md truncate text-sm underline-offset-2 hover:underline"
+                                                className="block max-w-full truncate text-sm underline-offset-2 hover:underline sm:max-w-md"
                                             >
                                                 {v.youtube_url}
                                             </a>
@@ -273,8 +273,8 @@ function UpdateTab({ videos, images, maxImages }: { videos: PembangunanVideo[]; 
 
             {/* Image gallery section */}
             <Card>
-                <CardContent className="space-y-4 p-6">
-                    <div className="flex items-center justify-between">
+                <CardContent className="space-y-4 p-4 sm:p-6">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                         <h2 className="font-semibold">
                             Gambar Pembangunan ({images.length}/{maxImages})
                         </h2>
@@ -361,17 +361,17 @@ function DanaPembangunanTab({ latest, history }: { latest: PembangunanUpdate | n
 
     return (
         <>
-            <div className="flex items-center justify-between">
-                <div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
                     <p className="text-xs font-semibold tracking-widest text-muted-foreground">
                         {latest ? `PER ${formatTanggal(latest.update_date)}` : 'BELUM ADA DATA'}
                     </p>
-                    <h1 className="text-2xl font-bold tracking-tight uppercase">Update Pembangunan GSG II</h1>
+                    <h1 className="text-xl font-bold tracking-tight uppercase sm:text-2xl">Update Pembangunan GSG II</h1>
                 </div>
 
                 <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger asChild>
-                        <Button onClick={openModal}>
+                        <Button onClick={openModal} className="w-fit">
                             <Pencil className="h-4 w-4" />
                             {latest ? 'Edit Data' : 'Tambah Data'}
                         </Button>
@@ -409,7 +409,7 @@ function DanaPembangunanTab({ latest, history }: { latest: PembangunanUpdate | n
                                 </div>
                             ))}
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="grid gap-2">
                                     <Label htmlFor="rincian_start_date">Rincian Mulai</Label>
                                     <DatePicker
@@ -430,7 +430,7 @@ function DanaPembangunanTab({ latest, history }: { latest: PembangunanUpdate | n
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between rounded-md bg-muted px-4 py-3 text-sm">
+                            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-md bg-muted px-4 py-3 text-sm">
                                 <span className="text-muted-foreground">Masih dibutuhkan (otomatis)</span>
                                 <span className="font-semibold">{formatRupiah(preview.masihDibutuhkan)}</span>
                             </div>
@@ -485,17 +485,17 @@ function DisplayCard({ record }: { record: PembangunanUpdate }) {
 
     return (
         <Card>
-            <CardContent className="space-y-6 p-6">
+            <CardContent className="space-y-6 p-4 sm:p-6">
                 <p className="text-sm font-semibold tracking-widest text-muted-foreground">UPDATE PERSEMBAHAN</p>
 
-                <div className="grid grid-cols-2 gap-4 text-center">
+                <div className="grid gap-6 text-center sm:grid-cols-2 sm:gap-4">
                     <div>
-                        <p className="text-4xl font-bold tracking-tight">{formatPercent(pctTerkumpul)}</p>
+                        <p className="text-3xl font-bold tracking-tight sm:text-4xl">{formatPercent(pctTerkumpul)}</p>
                         <p className="mt-1 text-xs font-semibold tracking-widest text-muted-foreground">TERKUMPUL</p>
                         <p className="mt-1 font-semibold">{formatRupiah(terkumpul)}</p>
                     </div>
                     <div>
-                        <p className="text-4xl font-bold tracking-tight">{formatPercent(pctSisa)}</p>
+                        <p className="text-3xl font-bold tracking-tight sm:text-4xl">{formatPercent(pctSisa)}</p>
                         <p className="mt-1 text-xs font-semibold tracking-widest text-muted-foreground">MASIH DIBUTUHKAN</p>
                         <p className="mt-1 font-semibold">{formatRupiah(masihDibutuhkan)}</p>
                     </div>
@@ -511,14 +511,14 @@ function DisplayCard({ record }: { record: PembangunanUpdate }) {
                     </p>
                     <dl className="divide-y">
                         {rows.map((row) => (
-                            <div key={row.label} className="flex items-center justify-between py-3">
+                            <div key={row.label} className="flex items-center justify-between gap-4 py-3">
                                 <dt className="text-muted-foreground">{row.label}</dt>
-                                <dd className="font-medium">{formatRupiah(row.value)}</dd>
+                                <dd className="shrink-0 text-right font-medium">{formatRupiah(row.value)}</dd>
                             </div>
                         ))}
-                        <div className="flex items-center justify-between py-3">
+                        <div className="flex items-center justify-between gap-4 py-3">
                             <dt className="font-semibold">Target persembahan</dt>
-                            <dd className="font-semibold">{formatRupiah(record.target_persembahan)}</dd>
+                            <dd className="shrink-0 text-right font-semibold">{formatRupiah(record.target_persembahan)}</dd>
                         </div>
                     </dl>
                 </div>
@@ -530,7 +530,7 @@ function DisplayCard({ record }: { record: PembangunanUpdate }) {
 function HistoryList({ history, latestId, onDelete }: { history: PembangunanUpdate[]; latestId: number; onDelete: (id: number) => void }) {
     return (
         <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
                 <p className="mb-3 text-xs font-semibold tracking-widest text-muted-foreground">RIWAYAT UPDATE</p>
                 <ul className="divide-y">
                     {history.map((item) => {
@@ -541,14 +541,14 @@ function HistoryList({ history, latestId, onDelete }: { history: PembangunanUpda
                             item.janji_iman_belum_terealisasi,
                         );
                         return (
-                            <li key={item.id} className="flex items-center justify-between py-3">
-                                <div>
+                            <li key={item.id} className="flex items-center justify-between gap-4 py-3">
+                                <div className="min-w-0">
                                     <p className="font-medium">{formatTanggal(item.update_date)}</p>
                                     <p className="text-sm text-muted-foreground">
                                         Terkumpul {formatRupiah(terkumpul)} dari {formatRupiah(item.target_persembahan)}
                                     </p>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex shrink-0 items-center gap-2">
                                     {item.id === latestId && (
                                         <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">Terbaru</span>
                                     )}

@@ -27,6 +27,8 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+const formatCreated = (iso: string) => format(new Date(iso), 'd MMM yyyy', { locale: localeId });
+
 export default function UserIndex({ users }: { users: UserRow[] }) {
     const currentUserId = usePage<SharedData>().props.auth.user.id;
     const [revealed, setRevealed] = useState<Set<number>>(new Set());
@@ -61,13 +63,25 @@ export default function UserIndex({ users }: { users: UserRow[] }) {
         }
     };
 
+    const passwordCell = (u: UserRow) => (
+        <PasswordCell
+            password={u.generated_password}
+            revealed={revealed.has(u.id)}
+            copied={copiedId === u.id}
+            onToggle={() => toggleReveal(u.id)}
+            onCopy={() => copyPassword(u.id, u.generated_password!)}
+        />
+    );
+
+    const actions = (u: UserRow) => <UserActions user={u} isSelf={u.id === currentUserId} onRegenerate={regenerate} onRemove={remove} />;
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="User" />
 
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
-                <div className="flex items-start justify-between gap-4">
-                    <div>
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="min-w-0">
                         <h1 className="text-2xl font-bold tracking-tight">User</h1>
                         <p className="text-sm text-muted-foreground">Kelola akun pengguna. Kirim password yang dibuat ke pengguna terkait.</p>
                     </div>
@@ -78,7 +92,41 @@ export default function UserIndex({ users }: { users: UserRow[] }) {
                     </Button>
                 </div>
 
-                <Card>
+                {/* Mobile: one card per user */}
+                <div className="space-y-3 md:hidden">
+                    {users.map((u) => (
+                        <Card key={u.id}>
+                            <CardContent className="space-y-3 p-4">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="min-w-0 space-y-0.5">
+                                        <p className="font-medium">
+                                            {u.name}
+                                            {u.id === currentUserId && <span className="ml-2 text-xs text-muted-foreground">(Anda)</span>}
+                                        </p>
+                                        {u.username && <p className="font-mono text-sm text-muted-foreground">@{u.username}</p>}
+                                        <p className="text-sm break-all text-muted-foreground">{u.email}</p>
+                                    </div>
+                                    <div className="flex shrink-0 items-center gap-1">
+                                        <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>{u.role === 'admin' ? 'Admin' : 'User'}</Badge>
+                                        {actions(u)}
+                                    </div>
+                                </div>
+                                <dl className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-1 text-sm">
+                                    <dt className="text-muted-foreground">Password</dt>
+                                    <dd className="min-w-0">{passwordCell(u)}</dd>
+                                    <dt className="text-muted-foreground">Dibuat</dt>
+                                    <dd>{formatCreated(u.created_at)}</dd>
+                                </dl>
+                            </CardContent>
+                        </Card>
+                    ))}
+                    {users.length === 0 && (
+                        <div className="rounded-lg border border-dashed py-10 text-center text-sm text-muted-foreground">Belum ada pengguna.</div>
+                    )}
+                </div>
+
+                {/* Desktop: table */}
+                <Card className="hidden md:block">
                     <CardContent className="p-0">
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
@@ -94,105 +142,30 @@ export default function UserIndex({ users }: { users: UserRow[] }) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {users.map((u) => {
-                                        const isSelf = u.id === currentUserId;
-                                        const isRevealed = revealed.has(u.id);
-                                        return (
-                                            <tr key={u.id} className="border-b last:border-0">
-                                                <td className="px-4 py-3 font-medium">
-                                                    {u.name}
-                                                    {isSelf && <span className="ml-2 text-xs text-muted-foreground">(Anda)</span>}
-                                                </td>
-                                                <td className="px-4 py-3 text-muted-foreground">
-                                                    {u.username ? (
-                                                        <span className="font-mono">@{u.username}</span>
-                                                    ) : (
-                                                        <span title="Belum dibuat — diminta saat login berikutnya">—</span>
-                                                    )}
-                                                </td>
-                                                <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
-                                                <td className="px-4 py-3">
-                                                    <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
-                                                        {u.role === 'admin' ? 'Admin' : 'User'}
-                                                    </Badge>
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    {u.generated_password ? (
-                                                        <div className="flex items-center gap-2">
-                                                            <span className={`font-mono ${isRevealed ? '' : 'blur-sm select-none'}`}>
-                                                                {u.generated_password}
-                                                            </span>
-                                                            <Button
-                                                                type="button"
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="h-7 w-7"
-                                                                onClick={() => toggleReveal(u.id)}
-                                                                aria-label={isRevealed ? 'Sembunyikan password' : 'Tampilkan password'}
-                                                            >
-                                                                {isRevealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                                            </Button>
-                                                            <Button
-                                                                type="button"
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="h-7 w-7"
-                                                                onClick={() => copyPassword(u.id, u.generated_password!)}
-                                                                aria-label="Salin password"
-                                                            >
-                                                                {copiedId === u.id ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-                                                            </Button>
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-muted-foreground">—</span>
-                                                    )}
-                                                </td>
-                                                <td className="px-4 py-3 text-muted-foreground">
-                                                    {format(new Date(u.created_at), 'd MMM yyyy', { locale: localeId })}
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <div className="flex justify-end">
-                                                        <DropdownMenu>
-                                                            <DropdownMenuTrigger asChild>
-                                                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label="Aksi">
-                                                                    <Ellipsis className="h-4 w-4" />
-                                                                </Button>
-                                                            </DropdownMenuTrigger>
-                                                            <DropdownMenuContent align="end" className="w-52">
-                                                                {u.role === 'admin' ? (
-                                                                    <DropdownMenuItem disabled className="items-start">
-                                                                        <ShieldCheck className="mt-0.5" />
-                                                                        <div>
-                                                                            <div>Set Pemakai</div>
-                                                                            <div className="text-xs text-muted-foreground">Admin memiliki akses penuh</div>
-                                                                        </div>
-                                                                    </DropdownMenuItem>
-                                                                ) : (
-                                                                    <DropdownMenuItem asChild>
-                                                                        <Link href={route('user.access.edit', u.id)}>
-                                                                            <ShieldCheck /> Set Pemakai
-                                                                        </Link>
-                                                                    </DropdownMenuItem>
-                                                                )}
-                                                                <DropdownMenuItem onSelect={() => regenerate(u)}>
-                                                                    <KeyRound /> Password Baru
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuSeparator />
-                                                                <DropdownMenuItem
-                                                                    onSelect={() => remove(u)}
-                                                                    disabled={isSelf}
-                                                                    className="text-destructive focus:text-destructive"
-                                                                >
-                                                                    <Trash2 className="text-destructive" /> Hapus
-                                                                    {isSelf && <span className="ml-auto text-xs text-muted-foreground">Akun Anda</span>}
-                                                                </DropdownMenuItem>
-                                                            </DropdownMenuContent>
-                                                        </DropdownMenu>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
+                                    {users.map((u) => (
+                                        <tr key={u.id} className="border-b last:border-0">
+                                            <td className="px-4 py-3 font-medium">
+                                                {u.name}
+                                                {u.id === currentUserId && <span className="ml-2 text-xs text-muted-foreground">(Anda)</span>}
+                                            </td>
+                                            <td className="px-4 py-3 text-muted-foreground">
+                                                {u.username ? (
+                                                    <span className="font-mono">@{u.username}</span>
+                                                ) : (
+                                                    <span title="Belum dibuat — diminta saat login berikutnya">—</span>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
+                                            <td className="px-4 py-3">
+                                                <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>{u.role === 'admin' ? 'Admin' : 'User'}</Badge>
+                                            </td>
+                                            <td className="px-4 py-3">{passwordCell(u)}</td>
+                                            <td className="px-4 py-3 text-muted-foreground">{formatCreated(u.created_at)}</td>
+                                            <td className="px-4 py-3">
+                                                <div className="flex justify-end">{actions(u)}</div>
+                                            </td>
+                                        </tr>
+                                    ))}
                                     {users.length === 0 && (
                                         <tr>
                                             <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
@@ -207,5 +180,89 @@ export default function UserIndex({ users }: { users: UserRow[] }) {
                 </Card>
             </div>
         </AppLayout>
+    );
+}
+
+function PasswordCell({
+    password,
+    revealed,
+    copied,
+    onToggle,
+    onCopy,
+}: {
+    password: string | null;
+    revealed: boolean;
+    copied: boolean;
+    onToggle: () => void;
+    onCopy: () => void;
+}) {
+    if (!password) {
+        return <span className="text-muted-foreground">—</span>;
+    }
+
+    return (
+        <div className="flex items-center gap-2">
+            <span className={`font-mono ${revealed ? '' : 'blur-sm select-none'}`}>{password}</span>
+            <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={onToggle}
+                aria-label={revealed ? 'Sembunyikan password' : 'Tampilkan password'}
+            >
+                {revealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
+            <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={onCopy} aria-label="Salin password">
+                {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+            </Button>
+        </div>
+    );
+}
+
+function UserActions({
+    user,
+    isSelf,
+    onRegenerate,
+    onRemove,
+}: {
+    user: UserRow;
+    isSelf: boolean;
+    onRegenerate: (u: UserRow) => void;
+    onRemove: (u: UserRow) => void;
+}) {
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label="Aksi">
+                    <Ellipsis className="h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+                {user.role === 'admin' ? (
+                    <DropdownMenuItem disabled className="items-start">
+                        <ShieldCheck className="mt-0.5" />
+                        <div>
+                            <div>Set Pemakai</div>
+                            <div className="text-xs text-muted-foreground">Admin memiliki akses penuh</div>
+                        </div>
+                    </DropdownMenuItem>
+                ) : (
+                    <DropdownMenuItem asChild>
+                        <Link href={route('user.access.edit', user.id)}>
+                            <ShieldCheck /> Set Pemakai
+                        </Link>
+                    </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onSelect={() => onRegenerate(user)}>
+                    <KeyRound /> Password Baru
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => onRemove(user)} disabled={isSelf} className="text-destructive focus:text-destructive">
+                    <Trash2 className="text-destructive" /> Hapus
+                    {isSelf && <span className="ml-auto text-xs text-muted-foreground">Akun Anda</span>}
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 }

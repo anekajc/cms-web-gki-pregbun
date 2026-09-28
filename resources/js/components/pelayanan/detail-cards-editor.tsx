@@ -44,7 +44,7 @@ function SortableCard({ row, onChange, onRemove }: { row: Row; onChange: (key: s
                 {...attributes}
                 {...listeners}
                 type="button"
-                className="mt-2 cursor-grab text-muted-foreground active:cursor-grabbing"
+                className="mt-2 cursor-grab touch-none text-muted-foreground active:cursor-grabbing"
                 aria-label="Geser untuk mengatur urutan"
             >
                 <GripVertical className="h-5 w-5" />

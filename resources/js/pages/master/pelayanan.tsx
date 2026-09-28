@@ -63,7 +63,7 @@ export default function MasterPelayananPage({ pelayanan }: { pelayanan: MasterPe
                 </div>
 
                 <Card>
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 sm:p-6">
                         <form onSubmit={submit} className="flex flex-col gap-3 sm:flex-row sm:items-end">
                             <div className="grid flex-1 gap-2">
                                 <Label htmlFor="name">Nama Pelayanan Baru</Label>
@@ -83,7 +83,7 @@ export default function MasterPelayananPage({ pelayanan }: { pelayanan: MasterPe
                 </Card>
 
                 <Card>
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 sm:p-6">
                         {pelayanan.length > 0 ? (
                             <SortablePelayananList items={pelayanan} onReorder={reorder} onRename={rename} onDelete={destroy} busy={busy} />
                         ) : (
