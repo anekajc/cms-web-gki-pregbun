@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,4 +15,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // "Set Pemakai": per-user page/section access checkboxes.
     Route::get('user/{user}/akses', [UserController::class, 'editAccess'])->name('user.access.edit');
     Route::put('user/{user}/akses', [UserController::class, 'updateAccess'])->name('user.access.update');
+
+    // Log Aktivitas: who changed what, across every CMS page.
+    Route::get('log-aktivitas', [ActivityLogController::class, 'index'])->name('activity-log');
 });

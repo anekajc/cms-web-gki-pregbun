@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RecordsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Pelayanan extends Model
 {
+    use RecordsActivity;
+
     protected $table = 'pelayanan';
 
     protected $fillable = [

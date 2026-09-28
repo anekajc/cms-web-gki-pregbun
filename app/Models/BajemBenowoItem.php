@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RecordsActivity;
 use Illuminate\Database\Eloquent\Model;
 
 class BajemBenowoItem extends Model
 {
+    use RecordsActivity;
+
     public const SECTION_IBADAH = 'ibadah';
 
     public const SECTION_PELAYANAN = 'pelayanan';

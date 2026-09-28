@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Pelayanan;
 use App\Models\PelayananImage;
 use App\Support\Access;
+use App\Support\ActivityRecorder;
 use App\Support\CloudinaryImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -113,6 +114,10 @@ class PelayananController extends Controller
             'details.*.value' => 'required|string|max:2000',
         ]);
 
+        // Detail rows are mass-deleted below (no model events), so log the
+        // whole list before/after as one change.
+        $before = $this->detailLines($pelayanan);
+
         DB::transaction(function () use ($pelayanan, $validated) {
             $keepIds = collect($validated['details'])->pluck('id')->filter()->all();
 
@@ -130,6 +135,16 @@ class PelayananController extends Controller
             }
         });
 
+        app(ActivityRecorder::class)->detail('Detail', $before, $this->detailLines($pelayanan));
+
         return redirect()->route('pelayanan')->with('success', 'Detail pelayanan berhasil disimpan.');
+    }
+
+    /** @return list<string> "Label: value" per detail card, in display order. */
+    private function detailLines(Pelayanan $pelayanan): array
+    {
+        return $pelayanan->details()->get()
+            ->map(fn ($detail) => "{$detail->label}: {$detail->value}")
+            ->all();
     }
 }

@@ -94,6 +94,38 @@ class Access
     }
 
     /**
+     * Page key => label, in sidebar order.
+     *
+     * @return array<string, string>
+     */
+    public static function pageLabels(): array
+    {
+        return array_map(fn ($page) => $page[0], self::PAGES);
+    }
+
+    /**
+     * Leaf key => readable label ("Dashboard › Warta Jemaat", "Komisi").
+     *
+     * @return array<string, string>
+     */
+    public static function keyLabels(): array
+    {
+        $labels = [];
+
+        foreach (self::tree() as $page) {
+            if ($page['leaf']) {
+                $labels[$page['key']] = $page['label'];
+            }
+
+            foreach ($page['children'] as $child) {
+                $labels[$child['key']] = "{$page['label']} › {$child['label']}";
+            }
+        }
+
+        return $labels;
+    }
+
+    /**
      * Every storable leaf key.
      *
      * @return list<string>

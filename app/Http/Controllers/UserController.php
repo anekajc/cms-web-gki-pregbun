@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Support\Access;
+use App\Support\ActivityRecorder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -102,6 +103,7 @@ class UserController extends Controller
         ]);
 
         $keys = array_values(array_unique($validated['permissions']));
+        $before = $user->permissions()->pluck('permission')->all();
 
         DB::transaction(function () use ($user, $keys) {
             $user->permissions()->whereNotIn('permission', $keys)->delete();
@@ -112,6 +114,13 @@ class UserController extends Controller
                 $user->permissions()->create(['permission' => $key]);
             }
         });
+
+        // Log Aktivitas: which sections were revoked and which were granted.
+        $labels = Access::keyLabels();
+        $toLabels = fn (array $changed) => array_values(array_map(fn ($key) => $labels[$key] ?? $key, $changed));
+        $recorder = app(ActivityRecorder::class);
+        $recorder->detail('Akses dicabut', $toLabels(array_diff($before, $keys)), null);
+        $recorder->detail('Akses diberikan', null, $toLabels(array_diff($keys, $before)));
 
         return redirect()->route('user')->with('success', 'Akses pengguna berhasil diperbarui.');
     }

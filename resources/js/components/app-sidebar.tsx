@@ -12,6 +12,7 @@ import {
     Hammer,
     HandCoins,
     HandHeart,
+    History,
     LayoutDashboard,
     List,
     UserRoundPen,
@@ -30,6 +31,11 @@ const mainNavItems: NavItem[] = [
         title: 'User',
         url: '/user',
         icon: UserRoundPen,
+    },
+    {
+        title: 'Log Aktivitas',
+        url: '/log-aktivitas',
+        icon: History,
     },
     {
         title: 'Tentang Kami',
@@ -86,6 +92,8 @@ const mainNavItems: NavItem[] = [
     // },
 ];
 
+const ADMIN_ONLY = ['/user', '/log-aktivitas'];
+
 // Master data: source lists that feature pages' tabs/options are built from.
 const masterNavItems: NavItem[] = [
     {
@@ -114,9 +122,9 @@ export function AppSidebar() {
     const isAdmin = auth.user.role === 'admin';
     const { canAny } = useAccess();
 
-    // User management is admin-only; every other item shows when the user holds
-    // at least one section of that page (see App\Support\Access).
-    const visible = (item: NavItem) => (item.url === '/user' ? isAdmin : !item.access || canAny(item.access));
+    // User management and Log Aktivitas are admin-only; every other item shows
+    // when the user holds at least one section of that page (see App\Support\Access).
+    const visible = (item: NavItem) => (ADMIN_ONLY.includes(item.url) ? isAdmin : !item.access || canAny(item.access));
     const navItems = mainNavItems.filter(visible);
     const masterItems = masterNavItems.filter(visible);
 

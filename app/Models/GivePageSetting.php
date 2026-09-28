@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RecordsActivity;
 use Illuminate\Database\Eloquent\Model;
 
 class GivePageSetting extends Model
 {
+    use RecordsActivity;
+
     protected $fillable = [
         'hero_image_public_id',
         'hero_image_url',
@@ -18,5 +21,10 @@ class GivePageSetting extends Model
     public static function current(): self
     {
         return static::query()->firstOrCreate([]);
+    }
+
+    public function activityLabel(): ?string
+    {
+        return 'Gambar Hero Persembahan';
     }
 }

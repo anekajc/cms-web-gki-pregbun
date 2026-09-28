@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RecordsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Persembahan extends Model
 {
-    use HasFactory;
+    use HasFactory, RecordsActivity;
 
     /**
      * Hard cap on the number of giving items the public page supports.

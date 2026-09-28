@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RecordsActivity;
 use Illuminate\Database\Eloquent\Model;
 
 class BajemBenowoSetting extends Model
 {
+    use RecordsActivity;
+
     protected $fillable = [
         'about_description',
         'about_image_public_id',
@@ -24,5 +27,10 @@ class BajemBenowoSetting extends Model
     public static function current(): self
     {
         return static::query()->firstOrCreate([]);
+    }
+
+    public function activityLabel(): ?string
+    {
+        return 'Pengaturan Bajem Benowo';
     }
 }
