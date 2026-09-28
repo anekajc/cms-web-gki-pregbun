@@ -5,7 +5,7 @@ use App\Models\BajemBenowoSetting;
 use App\Models\User;
 
 test('updating settings persists text fields on the singleton row', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
 
     $this->put('/bajem-benowo/settings', [
         'about_description' => 'Sejarah Bajem Benowo.',
@@ -19,7 +19,7 @@ test('updating settings persists text fields on the singleton row', function () 
 });
 
 test('storing an item requires a valid section', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
 
     $this->post('/bajem-benowo/items', ['section' => 'bukan-section', 'title' => 'Contoh'])
         ->assertSessionHasErrors('section');
@@ -28,7 +28,7 @@ test('storing an item requires a valid section', function () {
 });
 
 test('storing an ibadah item persists schedules as an array', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
 
     $this->post('/bajem-benowo/items', [
         'section' => 'ibadah',
@@ -43,7 +43,7 @@ test('storing an ibadah item persists schedules as an array', function () {
 });
 
 test('items in different sections order independently', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
 
     $this->post('/bajem-benowo/items', ['section' => 'ibadah', 'title' => 'Ibadah A'])->assertSessionDoesntHaveErrors();
     $this->post('/bajem-benowo/items', ['section' => 'pelayanan', 'title' => 'Pelayanan A'])->assertSessionDoesntHaveErrors();
@@ -53,7 +53,7 @@ test('items in different sections order independently', function () {
 });
 
 test('reordering only touches items within the given section', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
     $ibadahA = BajemBenowoItem::create(['section' => 'ibadah', 'title' => 'A', 'order' => 1]);
     $ibadahB = BajemBenowoItem::create(['section' => 'ibadah', 'title' => 'B', 'order' => 2]);
     $pelayananA = BajemBenowoItem::create(['section' => 'pelayanan', 'title' => 'P', 'order' => 1]);
@@ -69,7 +69,7 @@ test('reordering only touches items within the given section', function () {
 });
 
 test('deleting an item removes it', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
     $item = BajemBenowoItem::create(['section' => 'pelayanan', 'title' => 'Konseling', 'order' => 1]);
 
     $this->delete("/bajem-benowo/items/{$item->id}")->assertSessionDoesntHaveErrors();

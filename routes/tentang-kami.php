@@ -3,7 +3,7 @@
 use App\Http\Controllers\HambaTuhanController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'access:tentangkami'])->group(function () {
     Route::get('tentangkami', [HambaTuhanController::class, 'index'])->name('tentangkami');
 
     // Hamba Tuhan (servants) on the Tentang Kami page.

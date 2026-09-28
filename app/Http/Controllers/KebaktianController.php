@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Kebaktian;
 use App\Models\KebaktianImage;
+use App\Support\Access;
 use App\Support\CloudinaryImage;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -22,6 +23,8 @@ class KebaktianController extends Controller
 
     public function update(Request $request, Kebaktian $kebaktian)
     {
+        Access::ensure("ibadah.kebaktian.{$kebaktian->id}");
+
         $validated = $request->validate([
             'description' => 'nullable|string',
             'schedules' => 'nullable|array',
@@ -38,6 +41,8 @@ class KebaktianController extends Controller
 
     public function storeImage(Request $request, Kebaktian $kebaktian)
     {
+        Access::ensure("ibadah.kebaktian.{$kebaktian->id}");
+
         $request->validate([
             // Accept large originals; Cloudinary compresses on delivery so the
             // user never has to shrink the file themselves.
@@ -63,6 +68,8 @@ class KebaktianController extends Controller
 
     public function destroyImage(KebaktianImage $image)
     {
+        Access::ensure("ibadah.kebaktian.{$image->kebaktian_id}");
+
         CloudinaryImage::delete($image->public_id);
         $image->delete();
 
@@ -71,6 +78,8 @@ class KebaktianController extends Controller
 
     public function reorderImages(Request $request, Kebaktian $kebaktian)
     {
+        Access::ensure("ibadah.kebaktian.{$kebaktian->id}");
+
         $validated = $request->validate([
             'ids' => 'required|array',
             'ids.*' => 'integer',

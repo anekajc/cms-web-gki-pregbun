@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAccess } from '@/hooks/use-access';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
@@ -105,12 +106,15 @@ export default function Pembangunan({
     images: PembangunanImage[];
     maxImages: number;
 }) {
-    const [tab, setTab] = useState<'update' | 'dana'>('update');
+    const { can } = useAccess();
 
+    // Only the tabs this user was granted (pembangunan.update / pembangunan.dana).
     const tabs = [
         { key: 'update' as const, label: 'Update' },
         { key: 'dana' as const, label: 'Dana Pembangunan' },
-    ];
+    ].filter((t) => can(`pembangunan.${t.key}`));
+
+    const [tab, setTab] = useState<'update' | 'dana' | undefined>(tabs[0]?.key);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -132,11 +136,8 @@ export default function Pembangunan({
                     ))}
                 </div>
 
-                {tab === 'update' ? (
-                    <UpdateTab videos={videos} images={images} maxImages={maxImages} />
-                ) : (
-                    <DanaPembangunanTab latest={latest} history={history} />
-                )}
+                {tab === 'update' && <UpdateTab videos={videos} images={images} maxImages={maxImages} />}
+                {tab === 'dana' && <DanaPembangunanTab latest={latest} history={history} />}
             </div>
         </AppLayout>
     );

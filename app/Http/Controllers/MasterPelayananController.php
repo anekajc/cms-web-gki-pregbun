@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pelayanan;
+use App\Models\UserPermission;
 use App\Support\CloudinaryImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -80,6 +81,8 @@ class MasterPelayananController extends Controller
 
         // Cascades to pelayanan_details and pelayanan_images at the DB level.
         $pelayanan->delete();
+
+        UserPermission::where('permission', "pelayanan.{$pelayanan->id}")->delete();
 
         return redirect()->route('master.pelayanan')->with('success', 'Pelayanan berhasil dihapus.');
     }

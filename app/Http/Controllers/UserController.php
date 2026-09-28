@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Support\Access;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -70,6 +72,48 @@ class UserController extends Controller
         $user->delete();
 
         return redirect()->route('user')->with('success', 'Akun pengguna berhasil dihapus.');
+    }
+
+    public function editAccess(User $user)
+    {
+        if ($user->isAdmin()) {
+            return redirect()->route('user')->withErrors(['access' => 'Admin memiliki akses penuh.']);
+        }
+
+        $tree = Access::tree();
+
+        return Inertia::render('user/access', [
+            'user' => $user->only(['id', 'name', 'email']),
+            'tree' => $tree,
+            // Drop keys for rows that no longer exist so saving never fails validation.
+            'granted' => array_values(array_intersect($user->permissions()->pluck('permission')->all(), Access::allKeys())),
+        ]);
+    }
+
+    public function updateAccess(Request $request, User $user)
+    {
+        if ($user->isAdmin()) {
+            return redirect()->route('user')->withErrors(['access' => 'Admin memiliki akses penuh.']);
+        }
+
+        $validated = $request->validate([
+            'permissions' => 'present|array',
+            'permissions.*' => ['string', Rule::in(Access::allKeys())],
+        ]);
+
+        $keys = array_values(array_unique($validated['permissions']));
+
+        DB::transaction(function () use ($user, $keys) {
+            $user->permissions()->whereNotIn('permission', $keys)->delete();
+
+            $existing = $user->permissions()->pluck('permission')->all();
+
+            foreach (array_diff($keys, $existing) as $key) {
+                $user->permissions()->create(['permission' => $key]);
+            }
+        });
+
+        return redirect()->route('user')->with('success', 'Akses pengguna berhasil diperbarui.');
     }
 
     /**

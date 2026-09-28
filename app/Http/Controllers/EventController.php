@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreEventRequest;
 use App\Http\Requests\UpdateEventRequest;
 use App\Models\Event;
+use App\Support\Access;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -19,6 +20,8 @@ class EventController extends Controller
 
     public function store(StoreEventRequest $request)
     {
+        Access::ensure(self::accessKey($request->validated('type')));
+
         $event = Event::create($request->validated());
 
         return redirect()->route('event')
@@ -28,6 +31,9 @@ class EventController extends Controller
 
     public function update(UpdateEventRequest $request, Event $event)
     {
+        // Changing the type moves the event between sections, so both count.
+        Access::ensure(self::accessKey($event->type), self::accessKey($request->validated('type')));
+
         $event->update($request->validated());
 
         return redirect()->route('event')->with('success', 'Kegiatan berhasil diperbarui.');
@@ -35,6 +41,8 @@ class EventController extends Controller
 
     public function destroy(Event $event)
     {
+        Access::ensure(self::accessKey($event->type));
+
         if ($event->image_public_id) {
             cloudinary()->uploadApi()->destroy($event->image_public_id);
         }
@@ -46,6 +54,8 @@ class EventController extends Controller
 
     public function storeImage(Request $request, Event $event)
     {
+        Access::ensure(self::accessKey($event->type));
+
         $request->validate([
             'image' => 'required|image|mimes:jpeg,png,jpg,webp,avif|max:20480',
         ]);
@@ -66,6 +76,8 @@ class EventController extends Controller
 
     public function destroyImage(Event $event)
     {
+        Access::ensure(self::accessKey($event->type));
+
         if ($event->image_public_id) {
             cloudinary()->uploadApi()->destroy($event->image_public_id);
         }
@@ -96,5 +108,11 @@ class EventController extends Controller
                 $response['secure_url']
             ),
         ];
+    }
+
+    /** Rutin Mingguan and Event Spesial are separate access sections. */
+    private static function accessKey(?string $type): string
+    {
+        return $type === Event::TYPE_MINGGUAN ? 'event.mingguan' : 'event.spesial';
     }
 }

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAccess } from '@/hooks/use-access';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
@@ -31,6 +32,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function PersembahanPage({ items, heroImageUrl }: { items: PersembahanItem[]; heroImageUrl: string | null }) {
+    const { can } = useAccess();
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Persembahan" />
@@ -43,11 +46,11 @@ export default function PersembahanPage({ items, heroImageUrl }: { items: Persem
                     </p>
                 </div>
 
-                <HeroImageEditor heroImageUrl={heroImageUrl} />
+                {can('persembahan.hero') && <HeroImageEditor heroImageUrl={heroImageUrl} />}
 
-                <ItemsManager items={items} />
+                {can('persembahan.item') && <ItemsManager items={items} />}
 
-                <ItemsManagerPembangunan items={items} />
+                {can('persembahan.pembangunan') && <ItemsManagerPembangunan items={items} />}
             </div>
         </AppLayout>
     );

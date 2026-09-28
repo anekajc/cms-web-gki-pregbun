@@ -4,7 +4,8 @@ use App\Http\Controllers\PelayananController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('pelayanan', [PelayananController::class, 'index'])->name('pelayanan');
+    // Each tab needs pelayanan.{id}; mutations are checked in the controller.
+    Route::get('pelayanan', [PelayananController::class, 'index'])->middleware('access:pelayanan')->name('pelayanan');
 
     // Fixed set of ministries — content-only edits (no add/delete/reorder of tabs).
     Route::put('pelayanan/{pelayanan}', [PelayananController::class, 'update'])->name('pelayanan.update');

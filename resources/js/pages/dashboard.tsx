@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAccess } from '@/hooks/use-access';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
@@ -46,6 +47,7 @@ function nextSunday(): string {
 }
 
 export default function Dashboard({ warta, homeVideo }: { warta: Warta[]; homeVideo: HomeVideo }) {
+    const { can } = useAccess();
     const [dialog, setDialog] = useState<{ open: boolean; record: Warta | null }>({ open: false, record: null });
 
     const close = () => setDialog({ open: false, record: null });
@@ -60,69 +62,73 @@ export default function Dashboard({ warta, homeVideo }: { warta: Warta[]; homeVi
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4">
-                <Card>
-                    <CardContent className="space-y-4 p-6">
-                        <div className="flex items-center justify-between gap-4">
-                            <div>
-                                <h2 className="text-lg font-semibold">Warta Jemaat</h2>
-                                <p className="text-sm text-muted-foreground">
-                                    Tautan warta (PDF Google Drive). Dua warta terbaru otomatis tampil di website.
-                                </p>
+            {can('dashboard.warta') && (
+                <div className="flex h-full flex-1 flex-col gap-4 p-4">
+                    <Card>
+                        <CardContent className="space-y-4 p-6">
+                            <div className="flex items-center justify-between gap-4">
+                                <div>
+                                    <h2 className="text-lg font-semibold">Warta Jemaat</h2>
+                                    <p className="text-sm text-muted-foreground">
+                                        Tautan warta (PDF Google Drive). Dua warta terbaru otomatis tampil di website.
+                                    </p>
+                                </div>
+                                <Button onClick={() => setDialog({ open: true, record: null })}>
+                                    <Plus className="h-4 w-4" /> Tambah Warta
+                                </Button>
                             </div>
-                            <Button onClick={() => setDialog({ open: true, record: null })}>
-                                <Plus className="h-4 w-4" /> Tambah Warta
-                            </Button>
-                        </div>
 
-                        {warta.length > 0 ? (
-                            <ul className="divide-y">
-                                {warta.map((w, index) => (
-                                    <li key={w.id} className="flex items-center justify-between gap-4 py-3">
-                                        <div className="min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <p className="font-medium">{w.title || formatLabel(w.service_date)}</p>
-                                                {index < 2 && (
-                                                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                                                        Tampil di web
-                                                    </span>
-                                                )}
+                            {warta.length > 0 ? (
+                                <ul className="divide-y">
+                                    {warta.map((w, index) => (
+                                        <li key={w.id} className="flex items-center justify-between gap-4 py-3">
+                                            <div className="min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <p className="font-medium">{w.title || formatLabel(w.service_date)}</p>
+                                                    {index < 2 && (
+                                                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                                                            Tampil di web
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <a
+                                                    href={w.source_url ?? w.url}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="block max-w-md truncate text-sm text-muted-foreground underline-offset-2 hover:underline"
+                                                >
+                                                    {w.source_url ?? w.url}
+                                                </a>
                                             </div>
-                                            <a
-                                                href={w.source_url ?? w.url}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="block max-w-md truncate text-sm text-muted-foreground underline-offset-2 hover:underline"
-                                            >
-                                                {w.source_url ?? w.url}
-                                            </a>
-                                        </div>
-                                        <div className="flex shrink-0 gap-1">
-                                            <Button variant="ghost" size="icon" onClick={() => setDialog({ open: true, record: w })} aria-label="Edit">
-                                                <Pencil className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => remove(w.id)} aria-label="Hapus">
-                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                            </Button>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <div className="rounded-lg border border-dashed py-10 text-center text-sm text-muted-foreground">
-                                Belum ada warta. Klik &ldquo;Tambah Warta&rdquo; untuk menambahkan.
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
+                                            <div className="flex shrink-0 gap-1">
+                                                <Button variant="ghost" size="icon" onClick={() => setDialog({ open: true, record: w })} aria-label="Edit">
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" onClick={() => remove(w.id)} aria-label="Hapus">
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                </Button>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <div className="rounded-lg border border-dashed py-10 text-center text-sm text-muted-foreground">
+                                    Belum ada warta. Klik &ldquo;Tambah Warta&rdquo; untuk menambahkan.
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
 
             <WartaDialog key={dialog.open ? (dialog.record?.id ?? 'new') : 'closed'} open={dialog.open} record={dialog.record} onClose={close} />
 
             {/* For uploading Home Video */}
-            <div className="px-4 pb-4">
-                <HomeVideoSection homeVideo={homeVideo} />
-            </div>
+            {can('dashboard.video') && (
+                <div className={can('dashboard.warta') ? 'px-4 pb-4' : 'p-4'}>
+                    <HomeVideoSection homeVideo={homeVideo} />
+                </div>
+            )}
         </AppLayout>
     );
 }

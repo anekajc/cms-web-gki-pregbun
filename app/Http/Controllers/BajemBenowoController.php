@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BajemBenowoItem;
 use App\Models\BajemBenowoSetting;
+use App\Support\Access;
 use App\Support\CloudinaryImage;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -12,6 +13,18 @@ use Inertia\Inertia;
 class BajemBenowoController extends Controller
 {
     private const SLOTS = ['about', 'location'];
+
+    /** Image slot => access section (Tentang tab / Lokasi tab). */
+    private const SLOT_ACCESS = ['about' => 'bajem.tentang', 'location' => 'bajem.lokasi'];
+
+    /** Settings field => the tab (access section) that edits it. */
+    private const SETTING_FIELD_ACCESS = [
+        'about_description' => 'bajem.tentang',
+        'pelayanan_intro' => 'bajem.pelayanan',
+        'address' => 'bajem.lokasi',
+        'maps_url' => 'bajem.lokasi',
+        'map_embed_url' => 'bajem.lokasi',
+    ];
 
     public function index()
     {
@@ -30,6 +43,13 @@ class BajemBenowoController extends Controller
 
     public function updateSettings(Request $request)
     {
+        // One endpoint serves three tabs; each tab only submits its own fields.
+        foreach (self::SETTING_FIELD_ACCESS as $field => $key) {
+            if ($request->has($field)) {
+                Access::ensure($key);
+            }
+        }
+
         $validated = $request->validate([
             'about_description' => 'nullable|string',
             'pelayanan_intro' => 'nullable|string',
@@ -46,6 +66,7 @@ class BajemBenowoController extends Controller
     public function updateSettingImage(Request $request, string $slot)
     {
         abort_unless(in_array($slot, self::SLOTS, true), 404);
+        Access::ensure(self::SLOT_ACCESS[$slot]);
 
         $request->validate([
             'image' => 'required|image|mimes:jpeg,png,jpg,webp,avif|max:20480',
@@ -70,6 +91,7 @@ class BajemBenowoController extends Controller
     public function destroySettingImage(string $slot)
     {
         abort_unless(in_array($slot, self::SLOTS, true), 404);
+        Access::ensure(self::SLOT_ACCESS[$slot]);
 
         $settings = BajemBenowoSetting::current();
         $publicIdField = "{$slot}_image_public_id";
@@ -98,6 +120,8 @@ class BajemBenowoController extends Controller
             'cadence' => 'nullable|string|max:255',
         ]);
 
+        Access::ensure("bajem.{$validated['section']}");
+
         BajemBenowoItem::create([
             ...$validated,
             'order' => (BajemBenowoItem::where('section', $validated['section'])->max('order') ?? 0) + 1,
@@ -108,6 +132,8 @@ class BajemBenowoController extends Controller
 
     public function updateItem(Request $request, BajemBenowoItem $item)
     {
+        Access::ensure("bajem.{$item->section}");
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -125,6 +151,8 @@ class BajemBenowoController extends Controller
 
     public function updateItemImage(Request $request, BajemBenowoItem $item)
     {
+        Access::ensure("bajem.{$item->section}");
+
         $request->validate([
             'image' => 'required|image|mimes:jpeg,png,jpg,webp,avif|max:20480',
         ]);
@@ -143,6 +171,8 @@ class BajemBenowoController extends Controller
 
     public function destroyItemImage(BajemBenowoItem $item)
     {
+        Access::ensure("bajem.{$item->section}");
+
         CloudinaryImage::delete($item->image_public_id);
 
         $item->update([
@@ -155,6 +185,8 @@ class BajemBenowoController extends Controller
 
     public function destroyItem(BajemBenowoItem $item)
     {
+        Access::ensure("bajem.{$item->section}");
+
         CloudinaryImage::delete($item->image_public_id);
         $item->delete();
 
@@ -168,6 +200,9 @@ class BajemBenowoController extends Controller
             'ids' => 'required|array',
             'ids.*' => 'integer',
         ]);
+
+        // The update below is already scoped to this section.
+        Access::ensure("bajem.{$validated['section']}");
 
         foreach ($validated['ids'] as $index => $id) {
             BajemBenowoItem::where('id', $id)

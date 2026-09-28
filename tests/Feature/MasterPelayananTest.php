@@ -5,7 +5,7 @@ use App\Models\PelayananDetail;
 use App\Models\User;
 
 test('storing a pelayanan generates a slug from the name', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
 
     $this->post('/master/pelayanan', ['name' => 'Pelayanan Lansia'])->assertSessionDoesntHaveErrors();
 
@@ -15,7 +15,7 @@ test('storing a pelayanan generates a slug from the name', function () {
 });
 
 test('storing a pelayanan with a name that slugs the same makes the slug unique', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
     Pelayanan::create(['slug' => 'lansia', 'title' => 'Lansia', 'subtitle' => '', 'description' => '', 'order' => 1]);
 
     $this->post('/master/pelayanan', ['name' => 'Lansia'])->assertSessionDoesntHaveErrors();
@@ -24,7 +24,7 @@ test('storing a pelayanan with a name that slugs the same makes the slug unique'
 });
 
 test('renaming a pelayanan updates the title but never the slug', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
     $pelayanan = Pelayanan::create(['slug' => 'poliklinik', 'title' => 'Poliklinik', 'subtitle' => '', 'description' => '', 'order' => 1]);
 
     $this->put("/master/pelayanan/{$pelayanan->id}", ['name' => 'Poliklinik Sehat'])->assertSessionDoesntHaveErrors();
@@ -35,7 +35,7 @@ test('renaming a pelayanan updates the title but never the slug', function () {
 });
 
 test('reordering assigns order from the given id sequence', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
     $a = Pelayanan::create(['slug' => 'a', 'title' => 'A', 'subtitle' => '', 'description' => '', 'order' => 1]);
     $b = Pelayanan::create(['slug' => 'b', 'title' => 'B', 'subtitle' => '', 'description' => '', 'order' => 2]);
 
@@ -46,7 +46,7 @@ test('reordering assigns order from the given id sequence', function () {
 });
 
 test('deleting a pelayanan cascades its detail cards', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
     $pelayanan = Pelayanan::create(['slug' => 'beasiswa', 'title' => 'Beasiswa', 'subtitle' => '', 'description' => '', 'order' => 1]);
     PelayananDetail::create(['pelayanan_id' => $pelayanan->id, 'label' => 'Syarat', 'value' => 'Aktif jemaat', 'order' => 1]);
 

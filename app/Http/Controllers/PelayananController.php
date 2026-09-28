@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Pelayanan;
 use App\Models\PelayananImage;
+use App\Support\Access;
 use App\Support\CloudinaryImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -31,6 +32,8 @@ class PelayananController extends Controller
 
     public function update(Request $request, Pelayanan $pelayanan)
     {
+        Access::ensure("pelayanan.{$pelayanan->id}");
+
         $validated = $request->validate([
             'subtitle' => 'nullable|string|max:255',
             'description' => 'nullable|string',
@@ -43,6 +46,8 @@ class PelayananController extends Controller
 
     public function storeImage(Request $request, Pelayanan $pelayanan)
     {
+        Access::ensure("pelayanan.{$pelayanan->id}");
+
         $request->validate([
             // Accept large originals; Cloudinary compresses on delivery so the
             // user never has to shrink the file themselves.
@@ -68,6 +73,8 @@ class PelayananController extends Controller
 
     public function reorderImages(Request $request, Pelayanan $pelayanan)
     {
+        Access::ensure("pelayanan.{$pelayanan->id}");
+
         $validated = $request->validate([
             'ids' => 'required|array',
             'ids.*' => 'integer',
@@ -82,6 +89,8 @@ class PelayananController extends Controller
 
     public function destroyImage(PelayananImage $image)
     {
+        Access::ensure("pelayanan.{$image->pelayanan_id}");
+
         CloudinaryImage::delete($image->public_id);
         $image->delete();
 
@@ -95,6 +104,8 @@ class PelayananController extends Controller
      */
     public function syncDetails(Request $request, Pelayanan $pelayanan)
     {
+        Access::ensure("pelayanan.{$pelayanan->id}");
+
         $validated = $request->validate([
             'details' => 'present|array',
             'details.*.id' => 'nullable|integer',

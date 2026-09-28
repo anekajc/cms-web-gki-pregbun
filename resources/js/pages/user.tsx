@@ -1,12 +1,13 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
-import { Check, Copy, Eye, EyeOff, KeyRound, Trash2, UserPlus } from 'lucide-react';
+import { Check, Copy, Ellipsis, Eye, EyeOff, KeyRound, ShieldCheck, Trash2, UserPlus } from 'lucide-react';
 import { useState } from 'react';
 
 interface UserRow {
@@ -141,20 +142,43 @@ export default function UserIndex({ users }: { users: UserRow[] }) {
                                                     {format(new Date(u.created_at), 'd MMM yyyy', { locale: localeId })}
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <div className="flex justify-end gap-2">
-                                                        <Button type="button" variant="outline" size="sm" onClick={() => regenerate(u)}>
-                                                            <KeyRound className="h-4 w-4" /> Password Baru
-                                                        </Button>
-                                                        <Button
-                                                            type="button"
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => remove(u)}
-                                                            disabled={isSelf}
-                                                            title={isSelf ? 'Tidak dapat menghapus akun sendiri' : undefined}
-                                                        >
-                                                            <Trash2 className="h-4 w-4 text-destructive" />
-                                                        </Button>
+                                                    <div className="flex justify-end">
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label="Aksi">
+                                                                    <Ellipsis className="h-4 w-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end" className="w-52">
+                                                                {u.role === 'admin' ? (
+                                                                    <DropdownMenuItem disabled className="items-start">
+                                                                        <ShieldCheck className="mt-0.5" />
+                                                                        <div>
+                                                                            <div>Set Pemakai</div>
+                                                                            <div className="text-xs text-muted-foreground">Admin memiliki akses penuh</div>
+                                                                        </div>
+                                                                    </DropdownMenuItem>
+                                                                ) : (
+                                                                    <DropdownMenuItem asChild>
+                                                                        <Link href={route('user.access.edit', u.id)}>
+                                                                            <ShieldCheck /> Set Pemakai
+                                                                        </Link>
+                                                                    </DropdownMenuItem>
+                                                                )}
+                                                                <DropdownMenuItem onSelect={() => regenerate(u)}>
+                                                                    <KeyRound /> Password Baru
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuSeparator />
+                                                                <DropdownMenuItem
+                                                                    onSelect={() => remove(u)}
+                                                                    disabled={isSelf}
+                                                                    className="text-destructive focus:text-destructive"
+                                                                >
+                                                                    <Trash2 className="text-destructive" /> Hapus
+                                                                    {isSelf && <span className="ml-auto text-xs text-muted-foreground">Akun Anda</span>}
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
                                                     </div>
                                                 </td>
                                             </tr>

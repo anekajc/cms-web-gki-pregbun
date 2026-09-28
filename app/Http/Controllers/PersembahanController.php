@@ -6,6 +6,7 @@ use App\Http\Requests\StorePersembahanRequest;
 use App\Http\Requests\UpdatePersembahanRequest;
 use App\Models\GivePageSetting;
 use App\Models\Persembahan;
+use App\Support\Access;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -21,6 +22,8 @@ class PersembahanController extends Controller
 
     public function store(StorePersembahanRequest $request)
     {
+        Access::ensure(self::accessKey($request->validated('title')));
+
         $validated = $request->validated();
         $validated['order'] = (Persembahan::max('order') ?? 0) + 1;
 
@@ -33,6 +36,9 @@ class PersembahanController extends Controller
 
     public function update(UpdatePersembahanRequest $request, Persembahan $persembahan)
     {
+        // Renaming to/from "Pembangunan" moves the item between cards, so both count.
+        Access::ensure(self::accessKey($persembahan->title), self::accessKey($request->validated('title', $persembahan->title)));
+
         $persembahan->update($request->validated());
 
         return redirect()->route('persembahan')->with('success', 'Item persembahan berhasil diperbarui.');
@@ -40,6 +46,8 @@ class PersembahanController extends Controller
 
     public function destroy(Persembahan $persembahan)
     {
+        Access::ensure(self::accessKey($persembahan->title));
+
         if ($persembahan->qr_public_id) {
             cloudinary()->uploadApi()->destroy($persembahan->qr_public_id);
         }
@@ -56,6 +64,9 @@ class PersembahanController extends Controller
             'ids.*' => 'integer',
         ]);
 
+        Persembahan::whereIn('id', $validated['ids'])->pluck('title')
+            ->each(fn ($title) => Access::ensure(self::accessKey($title)));
+
         foreach ($validated['ids'] as $index => $id) {
             Persembahan::where('id', $id)->update(['order' => $index + 1]);
         }
@@ -65,6 +76,8 @@ class PersembahanController extends Controller
 
     public function storeQrImage(Request $request, Persembahan $persembahan)
     {
+        Access::ensure(self::accessKey($persembahan->title));
+
         $request->validate([
             'image' => 'required|image|mimes:jpeg,png,jpg,webp,avif|max:20480',
         ]);
@@ -88,6 +101,8 @@ class PersembahanController extends Controller
 
     public function destroyQrImage(Persembahan $persembahan)
     {
+        Access::ensure(self::accessKey($persembahan->title));
+
         if ($persembahan->qr_public_id) {
             cloudinary()->uploadApi()->destroy($persembahan->qr_public_id);
         }
@@ -158,5 +173,14 @@ class PersembahanController extends Controller
                 $response['secure_url']
             ),
         ];
+    }
+
+    /**
+     * The page shows the item titled "Pembangunan" in its own card, separate
+     * from the regular list, and each card is its own access section.
+     */
+    private static function accessKey(?string $title): string
+    {
+        return $title === 'Pembangunan' ? 'persembahan.pembangunan' : 'persembahan.item';
     }
 }

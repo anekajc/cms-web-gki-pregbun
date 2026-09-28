@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAccess } from '@/hooks/use-access';
 import AppLayout from '@/layouts/app-layout';
 import { DAYS, formatEventSchedule, formatEventTime, type EventItem, type EventType } from '@/lib/event';
 import { type BreadcrumbItem } from '@/types';
@@ -37,6 +38,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function EventsPage({ event }: { event: EventItem[] }) {
+    const { can } = useAccess();
     const [showCreateRutin, setShowCreateRutin] = useState(false);
     const [showCreateKhusus, setShowCreateKhusus] = useState(false);
     const [dayFilter, setDayFilter] = useState<string>('Semua');
@@ -63,79 +65,83 @@ export default function EventsPage({ event }: { event: EventItem[] }) {
                 </div>
 
                 {/* ───────────── RUTIN MINGGUAN ───────────── */}
-                <Card>
-                    <CardContent className="space-y-4 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h2 className="font-semibold">Rutin Mingguan ({rutin.length})</h2>
-                                <p className="text-muted-foreground text-sm">Kegiatan yang berulang setiap minggu pada hari tertentu.</p>
+                {can('event.mingguan') && (
+                    <Card>
+                        <CardContent className="space-y-4 p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="font-semibold">Rutin Mingguan ({rutin.length})</h2>
+                                    <p className="text-muted-foreground text-sm">Kegiatan yang berulang setiap minggu pada hari tertentu.</p>
+                                </div>
+                                <Button type="button" size="sm" onClick={() => setShowCreateRutin((v) => !v)}>
+                                    <Plus className="h-4 w-4" /> Tambah Kegiatan Rutin
+                                </Button>
                             </div>
-                            <Button type="button" size="sm" onClick={() => setShowCreateRutin((v) => !v)}>
-                                <Plus className="h-4 w-4" /> Tambah Kegiatan Rutin
-                            </Button>
-                        </div>
 
-                        {showCreateRutin && <CreateRutinForm onDone={() => setShowCreateRutin(false)} />}
+                            {showCreateRutin && <CreateRutinForm onDone={() => setShowCreateRutin(false)} />}
 
-                        <div className="flex flex-wrap gap-1.5">
-                            {['Semua', ...DAYS].map((day) => (
-                                <button
-                                    key={day}
-                                    type="button"
-                                    onClick={() => setDayFilter(day)}
-                                    className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                                        dayFilter === day
-                                            ? 'border-primary bg-primary text-primary-foreground'
-                                            : 'border-input bg-background text-foreground hover:bg-secondary'
-                                    }`}
-                                >
-                                    {day}
-                                </button>
-                            ))}
-                        </div>
-
-                        {filteredRutin.length > 0 ? (
-                            <div className="divide-y rounded-lg border">
-                                {filteredRutin.map((item) => (
-                                    <EventRow key={item.id} item={item} />
+                            <div className="flex flex-wrap gap-1.5">
+                                {['Semua', ...DAYS].map((day) => (
+                                    <button
+                                        key={day}
+                                        type="button"
+                                        onClick={() => setDayFilter(day)}
+                                        className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                                            dayFilter === day
+                                                ? 'border-primary bg-primary text-primary-foreground'
+                                                : 'border-input bg-background text-foreground hover:bg-secondary'
+                                        }`}
+                                    >
+                                        {day}
+                                    </button>
                                 ))}
                             </div>
-                        ) : (
-                            <div className="text-muted-foreground rounded-lg border border-dashed py-10 text-center text-sm">
-                                {rutin.length === 0 ? 'Belum ada kegiatan rutin.' : `Tidak ada kegiatan pada hari ${dayFilter}.`}
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+
+                            {filteredRutin.length > 0 ? (
+                                <div className="divide-y rounded-lg border">
+                                    {filteredRutin.map((item) => (
+                                        <EventRow key={item.id} item={item} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-muted-foreground rounded-lg border border-dashed py-10 text-center text-sm">
+                                    {rutin.length === 0 ? 'Belum ada kegiatan rutin.' : `Tidak ada kegiatan pada hari ${dayFilter}.`}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* ───────────── EVENT SPESIAL ───────────── */}
-                <Card>
-                    <CardContent className="space-y-4 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h2 className="font-semibold">Event Spesial ({khusus.length})</h2>
-                                <p className="text-muted-foreground text-sm">Kegiatan satu kali atau musiman dengan tanggal tertentu.</p>
+                {can('event.spesial') && (
+                    <Card>
+                        <CardContent className="space-y-4 p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="font-semibold">Event Spesial ({khusus.length})</h2>
+                                    <p className="text-muted-foreground text-sm">Kegiatan satu kali atau musiman dengan tanggal tertentu.</p>
+                                </div>
+                                <Button type="button" size="sm" onClick={() => setShowCreateKhusus((v) => !v)}>
+                                    <Plus className="h-4 w-4" /> Tambah Event Spesial
+                                </Button>
                             </div>
-                            <Button type="button" size="sm" onClick={() => setShowCreateKhusus((v) => !v)}>
-                                <Plus className="h-4 w-4" /> Tambah Event Spesial
-                            </Button>
-                        </div>
 
-                        {showCreateKhusus && <CreateKhususForm onDone={() => setShowCreateKhusus(false)} />}
+                            {showCreateKhusus && <CreateKhususForm onDone={() => setShowCreateKhusus(false)} />}
 
-                        {khusus.length > 0 ? (
-                            <div className="divide-y rounded-lg border">
-                                {khusus.map((item) => (
-                                    <EventRow key={item.id} item={item} />
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-muted-foreground rounded-lg border border-dashed py-10 text-center text-sm">
-                                Belum ada event spesial.
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+                            {khusus.length > 0 ? (
+                                <div className="divide-y rounded-lg border">
+                                    {khusus.map((item) => (
+                                        <EventRow key={item.id} item={item} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-muted-foreground rounded-lg border border-dashed py-10 text-center text-sm">
+                                    Belum ada event spesial.
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
             </div>
         </AppLayout>
     );

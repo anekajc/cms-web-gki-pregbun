@@ -4,7 +4,9 @@ use App\Http\Controllers\BajemBenowoController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('bajem-benowo', [BajemBenowoController::class, 'index'])->name('bajem-benowo');
+    // Tabs map to bajem.tentang / .ibadah / .pelayanan / .lokasi; mutations are
+    // checked in the controller since settings and items span several tabs.
+    Route::get('bajem-benowo', [BajemBenowoController::class, 'index'])->middleware('access:bajem')->name('bajem-benowo');
 
     // Singleton settings: Tentang description/image, Pelayanan intro, Lokasi.
     Route::put('bajem-benowo/settings', [BajemBenowoController::class, 'updateSettings'])->name('bajem-benowo.settings.update');

@@ -73,7 +73,8 @@ export default function UserCreate() {
                                 </Select>
                                 <InputError message={errors.role} />
                                 <p className="text-xs text-muted-foreground">
-                                    Admin dapat mengelola akun pengguna. User hanya dapat mengelola konten.
+                                    Admin dapat mengelola akun pengguna dan semua konten. User hanya dapat mengelola konten yang diatur lewat Aksi ›
+                                    Set Pemakai.
                                 </p>
                             </div>
 

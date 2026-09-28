@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAccess } from '@/hooks/use-access';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
@@ -44,8 +45,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 const HOME_TAB = 'home';
 
 export default function KebaktianPage({ kebaktians, maxImages }: { kebaktians: Kebaktian[]; maxImages: number }) {
-    const [activeSlug, setActiveSlug] = useState<string>(HOME_TAB);
-    const tabs = [{ slug: HOME_TAB, title: 'Tampilan Home' }, ...kebaktians.map((k) => ({ slug: k.slug, title: k.title }))];
+    const { can } = useAccess();
+    // Only the tabs this user was granted (ibadah.home / ibadah.kebaktian.{id}).
+    const tabs = [
+        ...(can('ibadah.home') ? [{ slug: HOME_TAB, title: 'Tampilan Home' }] : []),
+        ...kebaktians.filter((k) => can(`ibadah.kebaktian.${k.id}`)).map((k) => ({ slug: k.slug, title: k.title })),
+    ];
+    const [activeSlug, setActiveSlug] = useState<string>(tabs[0]?.slug ?? '');
     const activeKebaktian = kebaktians.find((k) => k.slug === activeSlug);
 
     return (

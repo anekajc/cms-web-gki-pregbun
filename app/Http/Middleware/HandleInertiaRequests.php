@@ -44,6 +44,8 @@ class HandleInertiaRequests extends Middleware
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),
+                // Leaf access keys (every key for admins) — drives sidebar/tab visibility.
+                'access' => $request->user()?->accessKeys() ?? [],
             ],
         ]);
     }

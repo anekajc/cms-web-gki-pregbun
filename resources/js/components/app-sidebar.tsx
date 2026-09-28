@@ -1,6 +1,7 @@
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { useAccess } from '@/hooks/use-access';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
@@ -22,6 +23,7 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         url: '/dashboard',
+        access: 'dashboard',
         icon: LayoutDashboard,
     },
     {
@@ -32,41 +34,49 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Tentang Kami',
         url: '/tentangkami',
+        access: 'tentangkami',
         icon: UsersRound,
     },
     {
         title: 'Ibadah',
         url: '/kebaktian',
+        access: 'ibadah',
         icon: Church,
     },
     {
         title: 'Event',
         url: '/event',
+        access: 'event',
         icon: CalendarArrowUp,
     },
     {
         title: 'Pelayanan',
         url: '/pelayanan',
+        access: 'pelayanan',
         icon: HandHeart,
     },
     {
         title: 'Bajem Benowo',
         url: '/bajem-benowo',
+        access: 'bajem',
         icon: Building2,
     },
     {
         title: 'Komisi',
         url: '/komisi',
+        access: 'komisi',
         icon: List,
     },
     {
         title: 'Pembangunan',
         url: '/pembangunan',
+        access: 'pembangunan',
         icon: Hammer,
     },
     {
         title: 'Persembahan',
         url: '/persembahan',
+        access: 'persembahan',
         icon: HandCoins,
     },
     // {
@@ -81,6 +91,7 @@ const masterNavItems: NavItem[] = [
     {
         title: 'Pelayanan',
         url: '/master/pelayanan',
+        access: 'master.pelayanan',
         icon: Database,
     },
 ];
@@ -101,9 +112,13 @@ const masterNavItems: NavItem[] = [
 export function AppSidebar() {
     const { auth } = usePage<SharedData>().props;
     const isAdmin = auth.user.role === 'admin';
+    const { canAny } = useAccess();
 
-    // The User management page is admin-only; hide its nav entry for everyone else.
-    const navItems = mainNavItems.filter((item) => item.url !== '/user' || isAdmin);
+    // User management is admin-only; every other item shows when the user holds
+    // at least one section of that page (see App\Support\Access).
+    const visible = (item: NavItem) => (item.url === '/user' ? isAdmin : !item.access || canAny(item.access));
+    const navItems = mainNavItems.filter(visible);
+    const masterItems = masterNavItems.filter(visible);
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -121,7 +136,7 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMain items={navItems} />
-                <NavMain items={masterNavItems} label="Master" />
+                {masterItems.length > 0 && <NavMain items={masterItems} label="Master" />}
             </SidebarContent>
 
             <SidebarFooter>

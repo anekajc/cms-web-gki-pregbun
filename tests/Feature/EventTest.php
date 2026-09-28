@@ -14,7 +14,7 @@ function baseEventPayload(array $overrides = []): array
 }
 
 test('storing a mingguan event persists day and start_time, leaves event_date null', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
 
     $this->post('/event', baseEventPayload([
         'type' => 'mingguan',
@@ -30,7 +30,7 @@ test('storing a mingguan event persists day and start_time, leaves event_date nu
 });
 
 test('storing a spesial event persists event_date, leaves day null', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
 
     $this->post('/event', baseEventPayload([
         'type' => 'spesial',
@@ -45,7 +45,7 @@ test('storing a spesial event persists event_date, leaves day null', function ()
 });
 
 test('storing a mingguan event without a day fails validation', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
 
     $this->post('/event', baseEventPayload([
         'type' => 'mingguan',
@@ -56,7 +56,7 @@ test('storing a mingguan event without a day fails validation', function () {
 });
 
 test('an end_time not after start_time fails validation', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
 
     $this->post('/event', baseEventPayload([
         'type' => 'mingguan',
@@ -69,7 +69,7 @@ test('an end_time not after start_time fails validation', function () {
 });
 
 test('updating a spesial event with a stale day in the payload does not stamp it as mingguan', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->admin()->create());
 
     $event = Event::create([
         'title' => 'Kebaktian Paskah',

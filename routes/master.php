@@ -3,7 +3,7 @@
 use App\Http\Controllers\MasterPelayananController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth'])->prefix('master')->name('master.')->group(function () {
+Route::middleware(['auth', 'access:master.pelayanan'])->prefix('master')->name('master.')->group(function () {
     // Master data: the source list a feature page's tabs/options are built
     // from. Pelayanan is the first — add/rename/delete/reorder the fixed set
     // of ministries here; the Pelayanan page only edits each one's content.

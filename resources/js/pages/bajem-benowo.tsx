@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAccess } from '@/hooks/use-access';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
@@ -59,7 +60,10 @@ const TABS = [
 type TabKey = (typeof TABS)[number]['key'];
 
 export default function BajemBenowoPage({ settings, items }: { settings: Settings; items: { ibadah: Item[]; pelayanan: Item[] } }) {
-    const [tab, setTab] = useState<TabKey>('tentang');
+    const { can } = useAccess();
+    // Only the tabs this user was granted (bajem.tentang / .ibadah / .pelayanan / .lokasi).
+    const tabs = TABS.filter((t) => can(`bajem.${t.key}`));
+    const [tab, setTab] = useState<TabKey | undefined>(tabs[0]?.key);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -72,7 +76,7 @@ export default function BajemBenowoPage({ settings, items }: { settings: Setting
                 </div>
 
                 <div className="flex flex-wrap gap-1 border-b">
-                    {TABS.map((t) => (
+                    {tabs.map((t) => (
                         <button
                             key={t.key}
                             onClick={() => setTab(t.key)}

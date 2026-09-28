@@ -14,45 +14,53 @@ Route::get('/', [AuthenticatedSessionController::class, 'create'])->name('home')
 
 Route::middleware(['auth'])->group(function () {
 
-    // Dashboard (Warta Jemaat)
-    Route::get('dashboard', [WartaController::class, 'index'])->name('dashboard');
-    Route::post('warta', [WartaController::class, 'store'])->name('warta.store');
-    Route::put('warta/{warta}', [WartaController::class, 'update'])->name('warta.update');
-    Route::delete('warta/{warta}', [WartaController::class, 'destroy'])->name('warta.destroy');
+    // Shown when a user has not been granted any page yet.
+    Route::get('no-access', fn () => Inertia::render('no-access'))->name('no-access');
+
+    // Dashboard (Warta Jemaat + Video Home). Users without access to either are
+    // bounced to their first permitted page, so every "go to dashboard" redirect
+    // (login, forced password change, logo) lands somewhere they can use.
+    Route::get('dashboard', [WartaController::class, 'index'])->middleware('access:dashboard')->name('dashboard');
+
+    Route::middleware('access:dashboard.warta')->group(function () {
+        Route::post('warta', [WartaController::class, 'store'])->name('warta.store');
+        Route::put('warta/{warta}', [WartaController::class, 'update'])->name('warta.update');
+        Route::delete('warta/{warta}', [WartaController::class, 'destroy'])->name('warta.destroy');
+    });
 
     // Home page hero videos (16:9 / 4:3) uploaded to Cloudinary.
-    Route::post('dashboard/home-video/{ratio}', [HomeVideoController::class, 'store'])
-        ->whereIn('ratio', ['16x9', '4x3'])->name('home-video.store');
-    Route::delete('dashboard/home-video/{ratio}', [HomeVideoController::class, 'destroy'])
-        ->whereIn('ratio', ['16x9', '4x3'])->name('home-video.destroy');
+    Route::middleware('access:dashboard.video')->group(function () {
+        Route::post('dashboard/home-video/{ratio}', [HomeVideoController::class, 'store'])
+            ->whereIn('ratio', ['16x9', '4x3'])->name('home-video.store');
+        Route::delete('dashboard/home-video/{ratio}', [HomeVideoController::class, 'destroy'])
+            ->whereIn('ratio', ['16x9', '4x3'])->name('home-video.destroy');
+    });
 
-    // Kebaktian Page
-    Route::get('kebaktian', [KebaktianController::class, 'index'])->name('kebaktian');
+    // Kebaktian Page. Per-kebaktian tabs are checked in the controller
+    // (ibadah.kebaktian.{id}); the "Tampilan Home" tab is ibadah.home.
+    Route::get('kebaktian', [KebaktianController::class, 'index'])->middleware('access:ibadah')->name('kebaktian');
     Route::put('kebaktian/{kebaktian}', [KebaktianController::class, 'update'])->name('kebaktian.update');
     Route::post('kebaktian/{kebaktian}/images', [KebaktianController::class, 'storeImage'])->name('kebaktian.images.store');
     Route::put('kebaktian/{kebaktian}/images/reorder', [KebaktianController::class, 'reorderImages'])->name('kebaktian.images.reorder');
     Route::delete('kebaktian/images/{image}', [KebaktianController::class, 'destroyImage'])->name('kebaktian.images.destroy');
-    Route::put('kebaktian/{kebaktian}/home', [KebaktianController::class, 'updateHome'])->name('kebaktian.home.update');
-    Route::post('kebaktian/{kebaktian}/home-image', [KebaktianController::class, 'storeHomeImage'])->name('kebaktian.home-image.store');
-    Route::delete('kebaktian/{kebaktian}/home-image', [KebaktianController::class, 'destroyHomeImage'])->name('kebaktian.home-image.destroy');
 
-    Route::get('event', function () {
-        return Inertia::render('event');
-    })->name('event');
+    Route::middleware('access:ibadah.home')->group(function () {
+        Route::put('kebaktian/{kebaktian}/home', [KebaktianController::class, 'updateHome'])->name('kebaktian.home.update');
+        Route::post('kebaktian/{kebaktian}/home-image', [KebaktianController::class, 'storeHomeImage'])->name('kebaktian.home-image.store');
+        Route::delete('kebaktian/{kebaktian}/home-image', [KebaktianController::class, 'destroyHomeImage'])->name('kebaktian.home-image.destroy');
+    });
 
     Route::get('komisi', function () {
         return Inertia::render('komisi');
-    })->name('komisi');
-
-    Route::get('persembahan', function () {
-        return Inertia::render('persembahan');
-    })->name('persembahan');
+    })->middleware('access:komisi')->name('komisi');
 
     Route::get('dummy', function () {
         return Inertia::render('dummy');
     })->name('dummy');
 
-    Route::get('persembahan', [PersembahanController::class, 'index'])->name('persembahan');
+    // Persembahan. Items are split by title in the controller: "Pembangunan"
+    // needs persembahan.pembangunan, everything else persembahan.item.
+    Route::get('persembahan', [PersembahanController::class, 'index'])->middleware('access:persembahan')->name('persembahan');
     Route::post('persembahan', [PersembahanController::class, 'store'])->name('persembahan.store');
     Route::put('persembahan/{persembahan}', [PersembahanController::class, 'update'])->name('persembahan.update');
     Route::delete('persembahan/{persembahan}', [PersembahanController::class, 'destroy'])->name('persembahan.destroy');
@@ -63,12 +71,16 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('persembahan/{persembahan}/qr-image', [PersembahanController::class, 'destroyQrImage'])
         ->name('persembahan.qr-image.destroy');
 
-    Route::post('persembahan-hero-image', [PersembahanController::class, 'storeHeroImage'])
-        ->name('persembahan.hero-image.store');
-    Route::delete('persembahan-hero-image', [PersembahanController::class, 'destroyHeroImage'])
-        ->name('persembahan.hero-image.destroy');
+    Route::middleware('access:persembahan.hero')->group(function () {
+        Route::post('persembahan-hero-image', [PersembahanController::class, 'storeHeroImage'])
+            ->name('persembahan.hero-image.store');
+        Route::delete('persembahan-hero-image', [PersembahanController::class, 'destroyHeroImage'])
+            ->name('persembahan.hero-image.destroy');
+    });
 
-    Route::get('event', [EventController::class, 'index'])->name('event');
+    // Event. Mutations are checked in the controller by type
+    // (mingguan → event.mingguan, spesial → event.spesial).
+    Route::get('event', [EventController::class, 'index'])->middleware('access:event')->name('event');
     Route::post('event', [EventController::class, 'store'])->name('event.store');
     Route::put('event/{event}', [EventController::class, 'update'])->name('event.update');
     Route::delete('event/{event}', [EventController::class, 'destroy'])->name('event.destroy');

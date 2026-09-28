@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAccess } from '@/hooks/use-access';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
@@ -40,7 +41,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const ASPECT = 4 / 3;
 
-export default function PelayananPage({ pelayanan, maxImages }: { pelayanan: PelayananItem[]; maxImages: number }) {
+export default function PelayananPage({ pelayanan: allPelayanan, maxImages }: { pelayanan: PelayananItem[]; maxImages: number }) {
+    const { can } = useAccess();
+    // Only the ministries this user was granted (pelayanan.{id}).
+    const pelayanan = allPelayanan.filter((p) => can(`pelayanan.${p.id}`));
     const [activeSlug, setActiveSlug] = useState<string>(pelayanan[0]?.slug ?? '');
     const active = pelayanan.find((p) => p.slug === activeSlug) ?? pelayanan[0];
 

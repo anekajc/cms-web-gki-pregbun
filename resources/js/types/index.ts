@@ -2,6 +2,8 @@ import { LucideIcon } from 'lucide-react';
 
 export interface Auth {
     user: User;
+    /** Leaf access keys the user holds (every key for admins). See App\Support\Access. */
+    access: string[];
 }
 
 export interface BreadcrumbItem {
@@ -19,6 +21,8 @@ export interface NavItem {
     url: string;
     icon?: LucideIcon | null;
     isActive?: boolean;
+    /** Access prefix required to show this item (e.g. "dashboard"). */
+    access?: string;
 }
 
 export interface SharedData {
