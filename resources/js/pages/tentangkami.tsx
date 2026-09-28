@@ -29,20 +29,30 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const ASPECT = 4 / 5;
 
+// Below `lg` the list and editor stack, so bring the editor into view after a selection.
+const scrollIntoViewIfStacked = (el: HTMLElement | null) => {
+    if (el && window.matchMedia('(max-width: 1023px)').matches) {
+        requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }
+};
+
 export default function TentangKami({ hambaTuhan }: { hambaTuhan: HambaTuhan[] }) {
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [adding, setAdding] = useState(false);
+    const editorRef = useRef<HTMLDivElement>(null);
 
     const selected = adding ? null : (hambaTuhan.find((p) => p.id === selectedId) ?? null);
 
     const select = (id: number) => {
         setAdding(false);
         setSelectedId(id);
+        scrollIntoViewIfStacked(editorRef.current);
     };
 
     const startAdd = () => {
         setAdding(true);
         setSelectedId(null);
+        scrollIntoViewIfStacked(editorRef.current);
     };
 
     const reorder = (ids: number[]) => {
@@ -76,8 +86,8 @@ export default function TentangKami({ hambaTuhan }: { hambaTuhan: HambaTuhan[] }
                     </Card>
 
                     {/* Right: editor */}
-                    <Card>
-                        <CardContent className="p-6">
+                    <Card ref={editorRef} className="scroll-mt-4">
+                        <CardContent className="p-4 sm:p-6">
                             {adding ? (
                                 <PastorNewForm onDone={() => setAdding(false)} />
                             ) : selected ? (
@@ -204,7 +214,7 @@ function PastorEditForm({ pastor, onDeleted }: { pastor: HambaTuhan; onDeleted: 
 
     return (
         <form onSubmit={submit} className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="font-semibold">Ubah Hamba Tuhan</h2>
                 <Button type="button" variant="outline" size="sm" onClick={remove}>
                     <Trash2 className="h-4 w-4 text-destructive" /> Hapus
@@ -253,7 +263,7 @@ function ImageField({
     onPick: () => void;
 }) {
     return (
-        <div className="flex items-end gap-4">
+        <div className="flex flex-wrap items-end gap-4">
             <div className="aspect-[4/5] w-32 shrink-0 overflow-hidden rounded-lg border bg-muted">
                 {preview ? (
                     <img src={preview} alt="" className="h-full w-full object-cover" />

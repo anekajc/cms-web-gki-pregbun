@@ -13,6 +13,13 @@ import { Head, router, useForm } from '@inertiajs/react';
 import { ImagePlus, ListPlus, Plus, Trash2 } from 'lucide-react';
 import { ChangeEvent, FormEventHandler, useRef, useState } from 'react';
 
+// Below `lg` the list and editor stack, so bring the editor into view after a selection.
+const scrollIntoViewIfStacked = (el: HTMLElement | null) => {
+    if (el && window.matchMedia('(max-width: 1023px)').matches) {
+        requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }
+};
+
 interface Settings {
     id: number;
     about_description: string | null;
@@ -75,13 +82,13 @@ export default function BajemBenowoPage({ settings, items }: { settings: Setting
                     <p className="text-muted-foreground text-sm">Kelola konten halaman Bajem Benowo di situs publik.</p>
                 </div>
 
-                <div className="flex flex-wrap gap-1 border-b">
+                <div className="flex gap-1 overflow-x-auto border-b">
                     {tabs.map((t) => (
                         <button
                             key={t.key}
                             onClick={() => setTab(t.key)}
                             className={cn(
-                                'border-b-2 px-4 py-2 text-sm font-medium transition-colors',
+                                'shrink-0 border-b-2 px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors',
                                 tab === t.key ? 'border-primary text-foreground' : 'text-muted-foreground hover:text-foreground border-transparent',
                             )}
                         >
@@ -137,7 +144,7 @@ function TentangEditor({ settings }: { settings: Settings }) {
     return (
         <div className="grid gap-6 lg:grid-cols-3">
             <Card className="lg:col-span-1">
-                <CardContent className="space-y-4 p-6">
+                <CardContent className="space-y-4 p-4 sm:p-6">
                     <h2 className="font-semibold">Gambar</h2>
                     <div className="bg-muted aspect-video overflow-hidden rounded-lg border">
                         {settings.about_image_url ? (
@@ -170,7 +177,7 @@ function TentangEditor({ settings }: { settings: Settings }) {
             </Card>
 
             <Card className="lg:col-span-2">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                     <form onSubmit={submit} className="space-y-4">
                         <div className="grid gap-2">
                             <Label htmlFor="about_description">Deskripsi</Label>
@@ -237,7 +244,7 @@ function LokasiEditor({ settings }: { settings: Settings }) {
     return (
         <div className="grid gap-6 lg:grid-cols-3">
             <Card className="lg:col-span-1">
-                <CardContent className="space-y-4 p-6">
+                <CardContent className="space-y-4 p-4 sm:p-6">
                     <h2 className="font-semibold">Foto Lokasi</h2>
                     <div className="bg-muted aspect-[4/3] overflow-hidden rounded-lg border">
                         {settings.location_image_url ? (
@@ -270,7 +277,7 @@ function LokasiEditor({ settings }: { settings: Settings }) {
             </Card>
 
             <Card className="lg:col-span-2">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                     <form onSubmit={submit} className="space-y-4">
                         <div className="grid gap-2">
                             <Label htmlFor="address">Alamat</Label>
@@ -329,6 +336,7 @@ function LokasiEditor({ settings }: { settings: Settings }) {
 function ItemsManager({ section, items, intro }: { section: 'ibadah' | 'pelayanan'; items: Item[]; intro?: string | null }) {
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [adding, setAdding] = useState(false);
+    const editorRef = useRef<HTMLDivElement>(null);
 
     const selected = adding ? null : (items.find((i) => i.id === selectedId) ?? null);
     const label = section === 'ibadah' ? 'Ibadah' : 'Pelayanan';
@@ -336,11 +344,13 @@ function ItemsManager({ section, items, intro }: { section: 'ibadah' | 'pelayana
     const select = (id: number) => {
         setAdding(false);
         setSelectedId(id);
+        scrollIntoViewIfStacked(editorRef.current);
     };
 
     const startAdd = () => {
         setAdding(true);
         setSelectedId(null);
+        scrollIntoViewIfStacked(editorRef.current);
     };
 
     const reorder = (ids: number[]) => {
@@ -371,8 +381,8 @@ function ItemsManager({ section, items, intro }: { section: 'ibadah' | 'pelayana
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardContent className="p-6">
+                <Card ref={editorRef} className="scroll-mt-4">
+                    <CardContent className="p-4 sm:p-6">
                         {adding ? (
                             <ItemForm section={section} onDone={() => setAdding(false)} />
                         ) : selected ? (
@@ -399,7 +409,7 @@ function PelayananIntroEditor({ intro }: { intro: string }) {
 
     return (
         <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
                 <form onSubmit={submit} className="space-y-3">
                     <Label htmlFor="pelayanan_intro">Kalimat Pengantar</Label>
                     <textarea
@@ -493,7 +503,7 @@ function ItemForm({
 
     return (
         <form onSubmit={submit} className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="font-semibold">{isNew ? 'Tambah Item' : 'Ubah Item'}</h2>
                 {!isNew && (
                     <Button type="button" variant="outline" size="sm" onClick={remove}>
@@ -503,7 +513,7 @@ function ItemForm({
             </div>
 
             {!isNew && (
-                <div className="flex items-end gap-4">
+                <div className="flex flex-wrap items-end gap-4">
                     <div className="bg-muted aspect-video w-40 shrink-0 overflow-hidden rounded-lg border">
                         {item?.image_url ? (
                             <img src={item.image_url} alt="" className="h-full w-full object-cover" />

@@ -27,7 +27,7 @@ interface DateTimePickerProps {
  */
 export function DateTimePicker({ id, value, onChange, datePlaceholder = 'Pilih tanggal', disabled, className }: DateTimePickerProps) {
     return (
-        <div className={cn('flex gap-2', className)}>
+        <div className={cn('flex flex-col gap-2 sm:flex-row', className)}>
             <div className="min-w-0 flex-1">
                 <DatePicker id={id} value={value.date} placeholder={datePlaceholder} onChange={(date) => onChange({ ...value, date })} />
             </div>
@@ -36,7 +36,7 @@ export function DateTimePicker({ id, value, onChange, datePlaceholder = 'Pilih t
                 value={value.time}
                 onChange={(time) => onChange({ ...value, time })}
                 disabled={disabled}
-                className="w-32 shrink-0"
+                className="w-full shrink-0 sm:w-32"
             />
         </div>
     );

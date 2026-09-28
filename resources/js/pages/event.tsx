@@ -67,9 +67,9 @@ export default function EventsPage({ event }: { event: EventItem[] }) {
                 {/* ───────────── RUTIN MINGGUAN ───────────── */}
                 {can('event.mingguan') && (
                     <Card>
-                        <CardContent className="space-y-4 p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
+                        <CardContent className="space-y-4 p-4 sm:p-6">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <div className="min-w-0">
                                     <h2 className="font-semibold">Rutin Mingguan ({rutin.length})</h2>
                                     <p className="text-muted-foreground text-sm">Kegiatan yang berulang setiap minggu pada hari tertentu.</p>
                                 </div>
@@ -115,9 +115,9 @@ export default function EventsPage({ event }: { event: EventItem[] }) {
                 {/* ───────────── EVENT SPESIAL ───────────── */}
                 {can('event.spesial') && (
                     <Card>
-                        <CardContent className="space-y-4 p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
+                        <CardContent className="space-y-4 p-4 sm:p-6">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <div className="min-w-0">
                                     <h2 className="font-semibold">Event Spesial ({khusus.length})</h2>
                                     <p className="text-muted-foreground text-sm">Kegiatan satu kali atau musiman dengan tanggal tertentu.</p>
                                 </div>
@@ -180,7 +180,7 @@ function ImagePickerField({ staging }: { staging: ReturnType<typeof useImageStag
     return (
         <div className="grid gap-2 md:col-span-2">
             <Label>Gambar (opsional)</Label>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
                 <div className="bg-muted h-20 w-32 flex-shrink-0 overflow-hidden rounded-lg border">
                     {imagePreviewUrl ? (
                         <img src={imagePreviewUrl} alt="" className="h-full w-full object-cover" />

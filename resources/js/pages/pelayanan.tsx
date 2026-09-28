@@ -64,13 +64,13 @@ export default function PelayananPage({ pelayanan: allPelayanan, maxImages }: { 
                     </p>
                 </div>
 
-                <div className="flex flex-wrap gap-1 border-b">
+                <div className="flex gap-1 overflow-x-auto border-b">
                     {pelayanan.map((p) => (
                         <button
                             key={p.slug}
                             onClick={() => setActiveSlug(p.slug)}
                             className={cn(
-                                'border-b-2 px-4 py-2 text-sm font-medium transition-colors',
+                                'shrink-0 border-b-2 px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors',
                                 active?.slug === p.slug
                                     ? 'border-primary text-foreground'
                                     : 'text-muted-foreground hover:text-foreground border-transparent',
@@ -153,8 +153,8 @@ function PelayananEditor({ item, maxImages }: { item: PelayananItem; maxImages: 
     return (
         <div className="grid gap-6 lg:grid-cols-3">
             <Card className="lg:col-span-3">
-                <CardContent className="space-y-4 p-6">
-                    <div className="flex items-center justify-between">
+                <CardContent className="space-y-4 p-4 sm:p-6">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                         <h2 className="font-semibold">
                             Galeri Foto ({item.images.length}/{maxImages})
                         </h2>
@@ -185,7 +185,7 @@ function PelayananEditor({ item, maxImages }: { item: PelayananItem; maxImages: 
             </Card>
 
             <Card className="lg:col-span-3">
-                <CardContent className="space-y-4 p-6">
+                <CardContent className="space-y-4 p-4 sm:p-6">
                     <form onSubmit={submit} className="space-y-4">
                         <div className="grid gap-1">
                             <span className="text-sm font-medium">Nama</span>
@@ -234,7 +234,7 @@ function PelayananEditor({ item, maxImages }: { item: PelayananItem; maxImages: 
             </Card>
 
             <Card className="lg:col-span-3">
-                <CardContent className="space-y-3 p-6">
+                <CardContent className="space-y-3 p-4 sm:p-6">
                     <div>
                         <h3 className="font-semibold">Kartu Detail</h3>
                         <p className="text-muted-foreground text-sm">

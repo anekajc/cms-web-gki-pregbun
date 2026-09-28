@@ -29,7 +29,7 @@ function SortableRow({ item, selected, onSelect }: { item: PastorItem; selected:
                 {...attributes}
                 {...listeners}
                 type="button"
-                className="cursor-grab text-muted-foreground active:cursor-grabbing"
+                className="cursor-grab touch-none text-muted-foreground active:cursor-grabbing"
                 aria-label="Geser untuk mengatur urutan"
             >
                 <GripVertical className="h-5 w-5" />

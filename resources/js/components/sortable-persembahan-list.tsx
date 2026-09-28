@@ -198,12 +198,12 @@ function ItemEditor({ item, onClose }: { item: PersembahanItem; onClose: () => v
                             <InputError message={errors.display_rekening} />
                         </div>
 
-                        <div className="flex items-center gap-3 md:col-span-2">
+                        <div className="flex flex-wrap items-center gap-3 md:col-span-2">
                             <Button type="submit" size="sm" disabled={processing}>
                                 Simpan
                             </Button>
                             {recentlySuccessful && <span className="text-sm text-muted-foreground">Tersimpan</span>}
-                            <Button type="button" size="sm" variant="outline" onClick={onClose} className="ml-auto">
+                            <Button type="button" size="sm" variant="outline" onClick={onClose} className="sm:ml-auto">
                                 Tutup
                             </Button>
                             <Button type="button" size="sm" variant="destructive" onClick={removeItem}>

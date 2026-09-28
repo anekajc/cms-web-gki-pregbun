@@ -179,7 +179,7 @@ export default function ActivityLogPage({ logs, filters, users, menus }: Props) 
                 )}
 
                 {logs.last_page > 1 && (
-                    <div className="flex items-center justify-between gap-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <span className="text-muted-foreground text-sm">
                             Halaman {logs.current_page} dari {logs.last_page} ({logs.total} aktivitas)
                         </span>
@@ -189,18 +189,20 @@ export default function ActivityLogPage({ logs, filters, users, menus }: Props) 
                                 variant="outline"
                                 size="sm"
                                 disabled={!logs.prev_page_url}
+                                aria-label="Sebelumnya"
                                 onClick={() => logs.prev_page_url && router.get(logs.prev_page_url, {}, { preserveState: true })}
                             >
-                                <ChevronLeft className="h-4 w-4" /> Sebelumnya
+                                <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">Sebelumnya</span>
                             </Button>
                             <Button
                                 type="button"
                                 variant="outline"
                                 size="sm"
                                 disabled={!logs.next_page_url}
+                                aria-label="Berikutnya"
                                 onClick={() => logs.next_page_url && router.get(logs.next_page_url, {}, { preserveState: true })}
                             >
-                                Berikutnya <ChevronRight className="h-4 w-4" />
+                                <span className="hidden sm:inline">Berikutnya</span> <ChevronRight className="h-4 w-4" />
                             </Button>
                         </div>
                     </div>

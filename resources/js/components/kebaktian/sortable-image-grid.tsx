@@ -27,7 +27,7 @@ function SortableThumb({ image, aspect, onDelete }: { image: GridImage; aspect: 
                 {...attributes}
                 {...listeners}
                 type="button"
-                className="absolute top-2 left-2 cursor-grab rounded bg-black/50 p-1.5 text-white active:cursor-grabbing"
+                className="absolute top-2 left-2 cursor-grab touch-none rounded bg-black/50 p-1.5 text-white active:cursor-grabbing"
                 aria-label="Geser untuk mengatur urutan"
             >
                 <GripVertical className="h-5 w-5" />

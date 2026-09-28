@@ -65,9 +65,9 @@ export default function Dashboard({ warta, homeVideo }: { warta: Warta[]; homeVi
             {can('dashboard.warta') && (
                 <div className="flex h-full flex-1 flex-col gap-4 p-4">
                     <Card>
-                        <CardContent className="space-y-4 p-6">
-                            <div className="flex items-center justify-between gap-4">
-                                <div>
+                        <CardContent className="space-y-4 p-4 sm:p-6">
+                            <div className="flex flex-wrap items-center justify-between gap-4">
+                                <div className="min-w-0">
                                     <h2 className="text-lg font-semibold">Warta Jemaat</h2>
                                     <p className="text-sm text-muted-foreground">
                                         Tautan warta (PDF Google Drive). Dua warta terbaru otomatis tampil di website.
@@ -83,7 +83,7 @@ export default function Dashboard({ warta, homeVideo }: { warta: Warta[]; homeVi
                                     {warta.map((w, index) => (
                                         <li key={w.id} className="flex items-center justify-between gap-4 py-3">
                                             <div className="min-w-0">
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                                                     <p className="font-medium">{w.title || formatLabel(w.service_date)}</p>
                                                     {index < 2 && (
                                                         <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
@@ -95,7 +95,7 @@ export default function Dashboard({ warta, homeVideo }: { warta: Warta[]; homeVi
                                                     href={w.source_url ?? w.url}
                                                     target="_blank"
                                                     rel="noreferrer"
-                                                    className="block max-w-md truncate text-sm text-muted-foreground underline-offset-2 hover:underline"
+                                                    className="block max-w-full truncate text-sm text-muted-foreground sm:max-w-md underline-offset-2 hover:underline"
                                                 >
                                                     {w.source_url ?? w.url}
                                                 </a>
@@ -212,7 +212,7 @@ function WartaDialog({ open, record, onClose }: { open: boolean; record: Warta |
 function HomeVideoSection({ homeVideo }: { homeVideo: HomeVideo }) {
     return (
         <Card>
-            <CardContent className="space-y-4 p-6">
+            <CardContent className="space-y-4 p-4 sm:p-6">
                 <div>
                     <h2 className="text-lg font-semibold">Video Home</h2>
                     <p className="text-sm text-muted-foreground">

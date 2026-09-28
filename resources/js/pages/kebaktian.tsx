@@ -64,13 +64,13 @@ export default function KebaktianPage({ kebaktians, maxImages }: { kebaktians: K
                     <p className="text-sm text-muted-foreground">Kelola gambar dan informasi untuk tiap jenis ibadah.</p>
                 </div>
 
-                <div className="flex flex-wrap gap-1 border-b">
+                <div className="flex gap-1 overflow-x-auto border-b">
                     {tabs.map((t) => (
                         <button
                             key={t.slug}
                             onClick={() => setActiveSlug(t.slug)}
                             className={cn(
-                                'border-b-2 px-4 py-2 text-sm font-medium transition-colors',
+                                'shrink-0 border-b-2 px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors',
                                 activeSlug === t.slug
                                     ? 'border-primary text-foreground'
                                     : 'border-transparent text-muted-foreground hover:text-foreground',
@@ -155,8 +155,8 @@ function HomeCardEditor({ kebaktian, aspect, aspectLabel }: { kebaktian: Kebakti
 
     return (
         <Card>
-            <CardContent className="space-y-4 p-6">
-                <div className="flex items-center justify-between">
+            <CardContent className="space-y-4 p-4 sm:p-6">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                     <h3 className="font-semibold">{kebaktian.title}</h3>
                     <span className="text-xs text-muted-foreground">Rasio {aspectLabel}</span>
                 </div>
@@ -266,8 +266,8 @@ function KebaktianEditor({ kebaktian, maxImages }: { kebaktian: Kebaktian; maxIm
     return (
         <div className="grid gap-6 lg:grid-cols-3">
             <Card className="lg:col-span-2">
-                <CardContent className="space-y-4 p-6">
-                    <div className="flex items-center justify-between">
+                <CardContent className="space-y-4 p-4 sm:p-6">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                         <h2 className="font-semibold">
                             Galeri Foto ({kebaktian.images.length}/{maxImages})
                         </h2>
@@ -292,7 +292,7 @@ function KebaktianEditor({ kebaktian, maxImages }: { kebaktian: Kebaktian; maxIm
             </Card>
 
             <Card>
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                     <form onSubmit={submit} className="space-y-4">
                         <div className="grid gap-2">
                             <Label htmlFor="description">Deskripsi</Label>
