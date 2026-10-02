@@ -36,7 +36,8 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const formatLabel = (iso: string) => `Warta — ${format(parse(iso.slice(0, 10), 'yyyy-MM-dd', new Date()), 'EEEE, d MMMM yyyy', { locale: localeId })}`;
+const formatLabel = (iso: string) =>
+    `Warta — ${format(parse(iso.slice(0, 10), 'yyyy-MM-dd', new Date()), 'EEEE, d MMMM yyyy', { locale: localeId })}`;
 
 // Upcoming Sunday (or today if it is Sunday) as yyyy-MM-dd in local time.
 function nextSunday(): string {
@@ -62,18 +63,18 @@ export default function Dashboard({ warta, homeVideo }: { warta: Warta[]; homeVi
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
 
-            {can('dashboard.warta') && (
-                <div className="flex h-full flex-1 flex-col gap-4 p-4">
+            <div className="flex flex-1 flex-col gap-4 p-4">
+                {can('dashboard.warta') && (
                     <Card>
                         <CardContent className="space-y-4 p-4 sm:p-6">
-                            <div className="flex flex-wrap items-center justify-between gap-4">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="min-w-0">
                                     <h2 className="text-lg font-semibold">Warta Jemaat</h2>
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-muted-foreground text-sm">
                                         Tautan warta (PDF Google Drive). Dua warta terbaru otomatis tampil di website.
                                     </p>
                                 </div>
-                                <Button onClick={() => setDialog({ open: true, record: null })}>
+                                <Button className="w-full sm:w-auto" onClick={() => setDialog({ open: true, record: null })}>
                                     <Plus className="h-4 w-4" /> Tambah Warta
                                 </Button>
                             </div>
@@ -81,12 +82,15 @@ export default function Dashboard({ warta, homeVideo }: { warta: Warta[]; homeVi
                             {warta.length > 0 ? (
                                 <ul className="divide-y">
                                     {warta.map((w, index) => (
-                                        <li key={w.id} className="flex items-center justify-between gap-4 py-3">
-                                            <div className="min-w-0">
+                                        <li
+                                            key={w.id}
+                                            className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:py-3"
+                                        >
+                                            <div className="min-w-0 flex-1 space-y-1">
                                                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                                                    <p className="font-medium">{w.title || formatLabel(w.service_date)}</p>
+                                                    <p className="font-medium break-words">{w.title || formatLabel(w.service_date)}</p>
                                                     {index < 2 && (
-                                                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                                                        <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
                                                             Tampil di web
                                                         </span>
                                                     )}
@@ -95,40 +99,50 @@ export default function Dashboard({ warta, homeVideo }: { warta: Warta[]; homeVi
                                                     href={w.source_url ?? w.url}
                                                     target="_blank"
                                                     rel="noreferrer"
-                                                    className="block max-w-full truncate text-sm text-muted-foreground sm:max-w-md underline-offset-2 hover:underline"
+                                                    className="text-muted-foreground block text-sm break-all underline-offset-2 hover:underline sm:max-w-md sm:truncate sm:break-normal"
                                                 >
                                                     {w.source_url ?? w.url}
                                                 </a>
                                             </div>
-                                            <div className="flex shrink-0 gap-1">
-                                                <Button variant="ghost" size="icon" onClick={() => setDialog({ open: true, record: w })} aria-label="Edit">
+                                            {/* Phones: labelled full-width buttons on their own row */}
+                                            <div className="grid grid-cols-2 gap-2 sm:hidden">
+                                                <Button variant="outline" size="sm" onClick={() => setDialog({ open: true, record: w })}>
+                                                    <Pencil className="h-4 w-4" /> Edit
+                                                </Button>
+                                                <Button variant="outline" size="sm" onClick={() => remove(w.id)}>
+                                                    <Trash2 className="text-destructive h-4 w-4" /> Hapus
+                                                </Button>
+                                            </div>
+                                            <div className="hidden shrink-0 gap-1 sm:flex">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => setDialog({ open: true, record: w })}
+                                                    aria-label="Edit"
+                                                >
                                                     <Pencil className="h-4 w-4" />
                                                 </Button>
                                                 <Button variant="ghost" size="icon" onClick={() => remove(w.id)} aria-label="Hapus">
-                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                    <Trash2 className="text-destructive h-4 w-4" />
                                                 </Button>
                                             </div>
                                         </li>
                                     ))}
                                 </ul>
                             ) : (
-                                <div className="rounded-lg border border-dashed py-10 text-center text-sm text-muted-foreground">
+                                <div className="text-muted-foreground rounded-lg border border-dashed py-10 text-center text-sm">
                                     Belum ada warta. Klik &ldquo;Tambah Warta&rdquo; untuk menambahkan.
                                 </div>
                             )}
                         </CardContent>
                     </Card>
-                </div>
-            )}
+                )}
+
+                {/* For uploading Home Video */}
+                {can('dashboard.video') && <HomeVideoSection homeVideo={homeVideo} />}
+            </div>
 
             <WartaDialog key={dialog.open ? (dialog.record?.id ?? 'new') : 'closed'} open={dialog.open} record={dialog.record} onClose={close} />
-
-            {/* For uploading Home Video */}
-            {can('dashboard.video') && (
-                <div className={can('dashboard.warta') ? 'px-4 pb-4' : 'p-4'}>
-                    <HomeVideoSection homeVideo={homeVideo} />
-                </div>
-            )}
         </AppLayout>
     );
 }
@@ -151,7 +165,7 @@ function WartaDialog({ open, record, onClose }: { open: boolean; record: Warta |
 
     return (
         <Dialog open={open} onOpenChange={(value) => !value && onClose()}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle>{record ? 'Edit Warta' : 'Tambah Warta'}</DialogTitle>
                     <DialogDescription>Pilih tanggal Minggu dan tempel tautan PDF dari Google Drive.</DialogDescription>
@@ -179,7 +193,7 @@ function WartaDialog({ open, record, onClose }: { open: boolean; record: Warta |
                             onChange={(e) => setData('source_url', e.target.value)}
                         />
                         <InputError message={errors.source_url} />
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-muted-foreground text-xs">
                             Pastikan file di Google Drive disetel &ldquo;Siapa saja yang memiliki link&rdquo; agar dapat dilihat pengunjung.
                         </p>
                     </div>
@@ -215,7 +229,7 @@ function HomeVideoSection({ homeVideo }: { homeVideo: HomeVideo }) {
             <CardContent className="space-y-4 p-4 sm:p-6">
                 <div>
                     <h2 className="text-lg font-semibold">Video Home</h2>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                         Unggah video untuk halaman utama. Maksimal {MAX_VIDEO_MB}MB (MP4, MOV, atau WebM). Mengunggah video baru akan menggantikan
                         yang lama.
                     </p>
@@ -264,36 +278,37 @@ function VideoSlot({ label, ratio, url, aspectClass }: { label: string; ratio: '
 
     return (
         <div className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex min-h-8 items-center justify-between gap-2">
                 <Label>{label}</Label>
                 {url && (
                     <Button type="button" variant="ghost" size="sm" onClick={remove}>
-                        <Trash2 className="h-4 w-4 text-destructive" /> Hapus
+                        <Trash2 className="text-destructive h-4 w-4" /> Hapus
                     </Button>
                 )}
             </div>
 
-            <div className={`${aspectClass} w-full overflow-hidden rounded-lg border bg-muted`}>
+            <div className={`${aspectClass} bg-muted w-full overflow-hidden rounded-lg border`}>
                 {url ? (
                     <video src={url} controls className="h-full w-full bg-black object-contain" />
                 ) : (
-                    <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Belum ada video</div>
+                    <div className="text-muted-foreground flex h-full items-center justify-center text-sm">Belum ada video</div>
                 )}
             </div>
 
             <div className="flex items-center gap-3">
-                <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()} disabled={uploading}>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full sm:w-auto"
+                    onClick={() => inputRef.current?.click()}
+                    disabled={uploading}
+                >
                     <Upload className="h-4 w-4" /> {uploading ? 'Mengunggah...' : url ? 'Ubah Video' : 'Unggah Video'}
                 </Button>
             </div>
 
-            <input
-                ref={inputRef}
-                type="file"
-                accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm"
-                className="hidden"
-                onChange={onPick}
-            />
+            <input ref={inputRef} type="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" className="hidden" onChange={onPick} />
             <InputError message={error ?? undefined} />
         </div>
     );
