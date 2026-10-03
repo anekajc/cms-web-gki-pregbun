@@ -1,9 +1,11 @@
 import { DateTimePicker } from '@/components/datetime-picker';
+import FlashNotice from '@/components/flash-notice';
 import InputError from '@/components/input-error';
 import ImageCropperDialog from '@/components/kebaktian/image-cropper-dialog';
 import { TimePicker } from '@/components/time-picker';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -57,6 +59,7 @@ export default function EventsPage({ event }: { event: EventItem[] }) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Acara & Jadwal" />
+            <FlashNotice />
 
             <div className="flex h-full flex-1 flex-col gap-6 p-4">
                 <div>
@@ -73,12 +76,12 @@ export default function EventsPage({ event }: { event: EventItem[] }) {
                                     <h2 className="font-semibold">Rutin Mingguan ({rutin.length})</h2>
                                     <p className="text-muted-foreground text-sm">Kegiatan yang berulang setiap minggu pada hari tertentu.</p>
                                 </div>
-                                <Button type="button" size="sm" onClick={() => setShowCreateRutin((v) => !v)}>
+                                <Button type="button" size="sm" onClick={() => setShowCreateRutin(true)}>
                                     <Plus className="h-4 w-4" /> Tambah Kegiatan Rutin
                                 </Button>
                             </div>
 
-                            {showCreateRutin && <CreateRutinForm onDone={() => setShowCreateRutin(false)} />}
+                            {showCreateRutin && <CreateEventDialog type="mingguan" onDone={() => setShowCreateRutin(false)} />}
 
                             <div className="flex flex-wrap gap-1.5">
                                 {['Semua', ...DAYS].map((day) => (
@@ -121,12 +124,12 @@ export default function EventsPage({ event }: { event: EventItem[] }) {
                                     <h2 className="font-semibold">Event Spesial ({khusus.length})</h2>
                                     <p className="text-muted-foreground text-sm">Kegiatan satu kali atau musiman dengan tanggal tertentu.</p>
                                 </div>
-                                <Button type="button" size="sm" onClick={() => setShowCreateKhusus((v) => !v)}>
+                                <Button type="button" size="sm" onClick={() => setShowCreateKhusus(true)}>
                                     <Plus className="h-4 w-4" /> Tambah Event Spesial
                                 </Button>
                             </div>
 
-                            {showCreateKhusus && <CreateKhususForm onDone={() => setShowCreateKhusus(false)} />}
+                            {showCreateKhusus && <CreateEventDialog type="spesial" onDone={() => setShowCreateKhusus(false)} />}
 
                             {khusus.length > 0 ? (
                                 <div className="divide-y rounded-lg border">
@@ -358,11 +361,16 @@ function EventCommonFields({
     );
 }
 
-function CreateRutinForm({ onDone }: { onDone: () => void }) {
-    const { data, setData, post, processing, errors, reset } = useForm({
+const MODAL_CLASS = 'max-h-[90vh] overflow-y-auto sm:max-w-3xl';
+
+/** Add-event modal. One component for both lists; `type` decides the "when" fields. */
+function CreateEventDialog({ type, onDone }: { type: EventType; onDone: () => void }) {
+    const isRutin = type === 'mingguan';
+    const idPrefix = isRutin ? 'rutin' : 'khusus';
+    const { data, setData, post, processing, errors } = useForm({
         title: '',
-        type: 'mingguan' as EventType,
-        day: DAYS[0] as string,
+        type,
+        day: isRutin ? (DAYS[0] as string) : '',
         event_date: '',
         start_time: '',
         end_time: '',
@@ -383,7 +391,6 @@ function CreateRutinForm({ onDone }: { onDone: () => void }) {
             preserveScroll: true,
             onSuccess: (page) => {
                 const createdId = (page.props as { createdId?: number }).createdId;
-                reset();
 
                 if (imageBlob && createdId) {
                     setUploading(true);
@@ -396,7 +403,6 @@ function CreateRutinForm({ onDone }: { onDone: () => void }) {
                             preserveScroll: true,
                             onFinish: () => {
                                 setUploading(false);
-                                staging.removeImage();
                                 onDone();
                             },
                         },
@@ -409,125 +415,55 @@ function CreateRutinForm({ onDone }: { onDone: () => void }) {
     };
 
     return (
-        <form onSubmit={submit} className="grid gap-3 rounded-lg border p-4 md:grid-cols-2">
-            <div className="grid gap-2 md:col-span-2">
-                <Label htmlFor="rutin_title">Judul</Label>
-                <Input id="rutin_title" placeholder="Ibadah Umum I" value={data.title} onChange={(e) => setData('title', e.target.value)} />
-                <InputError message={errors.title} />
-            </div>
+        <Dialog open onOpenChange={(open) => !open && !staging.uploading && onDone()}>
+            <DialogContent className={MODAL_CLASS}>
+                <DialogHeader>
+                    <DialogTitle>{isRutin ? 'Tambah Kegiatan Rutin' : 'Tambah Event Spesial'}</DialogTitle>
+                    <DialogDescription>Isi data kegiatan lalu simpan.</DialogDescription>
+                </DialogHeader>
 
-            <EventWhenFields idPrefix="rutin" type="mingguan" value={data} onChange={patch} errors={errors} />
-            <EventCommonFields idPrefix="rutin" value={data} onChange={patch} errors={errors} />
+                <form onSubmit={submit} className="grid gap-3 md:grid-cols-2">
+                    <div className="grid gap-2 md:col-span-2">
+                        <Label htmlFor={`${idPrefix}_title`}>Judul</Label>
+                        <Input
+                            id={`${idPrefix}_title`}
+                            placeholder={isRutin ? 'Ibadah Umum I' : 'Kebaktian Paskah'}
+                            value={data.title}
+                            onChange={(e) => setData('title', e.target.value)}
+                        />
+                        <InputError message={errors.title} />
+                    </div>
 
-            <ImagePickerField staging={staging} />
+                    <EventWhenFields idPrefix={idPrefix} type={type} value={data} onChange={patch} errors={errors} />
+                    <EventCommonFields idPrefix={idPrefix} value={data} onChange={patch} errors={errors} />
 
-            <div className="flex items-center gap-3 md:col-span-2">
-                <Button type="submit" size="sm" disabled={processing || staging.uploading}>
-                    {staging.uploading ? 'Mengunggah gambar...' : 'Simpan'}
-                </Button>
-                <Button type="button" size="sm" variant="outline" onClick={onDone}>
-                    Batal
-                </Button>
-            </div>
+                    <ImagePickerField staging={staging} />
 
-            <ImageCropperDialog
-                open={staging.cropSrc !== null}
-                imageSrc={staging.cropSrc}
-                aspect={16 / 9}
-                processing={false}
-                onClose={() => staging.setCropSrc(null)}
-                onCropped={staging.onCropped}
-            />
-        </form>
+                    <DialogFooter className="gap-2 md:col-span-2">
+                        <Button type="button" size="sm" variant="outline" onClick={onDone} disabled={staging.uploading}>
+                            Batal
+                        </Button>
+                        <Button type="submit" size="sm" disabled={processing || staging.uploading}>
+                            {staging.uploading ? 'Mengunggah gambar...' : 'Simpan'}
+                        </Button>
+                    </DialogFooter>
+                </form>
+
+                <ImageCropperDialog
+                    open={staging.cropSrc !== null}
+                    imageSrc={staging.cropSrc}
+                    aspect={16 / 9}
+                    processing={false}
+                    onClose={() => staging.setCropSrc(null)}
+                    onCropped={staging.onCropped}
+                />
+            </DialogContent>
+        </Dialog>
     );
 }
 
-function CreateKhususForm({ onDone }: { onDone: () => void }) {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        title: '',
-        type: 'spesial' as EventType,
-        day: '',
-        event_date: '',
-        start_time: '',
-        end_time: '',
-        location: '',
-        description: '',
-        details: '',
-        contact: '',
-        category: '',
-    });
-
-    const staging = useImageStaging();
-    const { imageBlob, setUploading } = staging;
-    const patch = (p: Partial<EventFormData>) => setData((prev) => ({ ...prev, ...p }));
-
-    const submit: FormEventHandler = (e) => {
-        e.preventDefault();
-        post(route('event.store'), {
-            preserveScroll: true,
-            onSuccess: (page) => {
-                const createdId = (page.props as { createdId?: number }).createdId;
-                reset();
-
-                if (imageBlob && createdId) {
-                    setUploading(true);
-                    const file = new File([imageBlob], 'event.jpg', { type: 'image/jpeg' });
-                    router.post(
-                        route('event.image.store', createdId),
-                        { image: file },
-                        {
-                            forceFormData: true,
-                            preserveScroll: true,
-                            onFinish: () => {
-                                setUploading(false);
-                                staging.removeImage();
-                                onDone();
-                            },
-                        },
-                    );
-                } else {
-                    onDone();
-                }
-            },
-        });
-    };
-
-    return (
-        <form onSubmit={submit} className="grid gap-3 rounded-lg border p-4 md:grid-cols-2">
-            <div className="grid gap-2 md:col-span-2">
-                <Label htmlFor="khusus_title">Judul</Label>
-                <Input id="khusus_title" placeholder="Kebaktian Paskah" value={data.title} onChange={(e) => setData('title', e.target.value)} />
-                <InputError message={errors.title} />
-            </div>
-
-            <EventWhenFields idPrefix="khusus" type="spesial" value={data} onChange={patch} errors={errors} />
-            <EventCommonFields idPrefix="khusus" value={data} onChange={patch} errors={errors} />
-
-            <ImagePickerField staging={staging} />
-
-            <div className="flex items-center gap-3 md:col-span-2">
-                <Button type="submit" size="sm" disabled={processing || staging.uploading}>
-                    {staging.uploading ? 'Mengunggah gambar...' : 'Simpan'}
-                </Button>
-                <Button type="button" size="sm" variant="outline" onClick={onDone}>
-                    Batal
-                </Button>
-            </div>
-
-            <ImageCropperDialog
-                open={staging.cropSrc !== null}
-                imageSrc={staging.cropSrc}
-                aspect={16 / 9}
-                processing={false}
-                onClose={() => staging.setCropSrc(null)}
-                onCropped={staging.onCropped}
-            />
-        </form>
-    );
-}
-
-function EventRow({ item }: { item: EventItem }) {
-    const [expanded, setExpanded] = useState(false);
+/** Edit modal: text fields on the left, image management on the right. */
+function EditEventDialog({ item, onClose }: { item: EventItem; onClose: () => void }) {
     const { data, setData, put, processing, errors } = useForm({
         title: item.title,
         type: item.type,
@@ -554,12 +490,12 @@ function EventRow({ item }: { item: EventItem }) {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        put(route('event.update', item.id), { preserveScroll: true });
+        put(route('event.update', item.id), { preserveScroll: true, onSuccess: onClose });
     };
 
     const remove = () => {
         if (confirm(`Hapus kegiatan "${item.title}"?`)) {
-            router.delete(route('event.destroy', item.id), { preserveScroll: true });
+            router.delete(route('event.destroy', item.id), { preserveScroll: true, onSuccess: onClose });
         }
     };
 
@@ -591,26 +527,14 @@ function EventRow({ item }: { item: EventItem }) {
     };
 
     return (
-        <div className="px-4 py-3">
-            <div className="flex items-center gap-3">
-                {item.image_url ? (
-                    <img src={item.image_url} alt="" className="h-10 w-14 flex-shrink-0 rounded object-cover" />
-                ) : (
-                    <div className="bg-muted h-10 w-14 flex-shrink-0 rounded" />
-                )}
-                <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{item.title}</p>
-                    <p className="text-muted-foreground truncate text-xs">
-                        {formatEventSchedule(item)} · {formatEventTime(item)} · {item.category}
-                    </p>
-                </div>
-                <Button type="button" size="sm" variant="outline" onClick={() => setExpanded((v) => !v)}>
-                    {expanded ? 'Tutup' : 'Edit'}
-                </Button>
-            </div>
+        <Dialog open onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className={MODAL_CLASS}>
+                <DialogHeader>
+                    <DialogTitle>Edit Kegiatan</DialogTitle>
+                    <DialogDescription>{item.title}</DialogDescription>
+                </DialogHeader>
 
-            {expanded && (
-                <div className="mt-3 grid gap-6 border-t pt-3 md:grid-cols-3">
+                <div className="grid gap-6 md:grid-cols-3">
                     <form onSubmit={submit} className="grid gap-3 md:col-span-2 md:grid-cols-2">
                         <div className="grid gap-2 md:col-span-2">
                             <Label htmlFor={`title_${item.id}`}>Judul</Label>
@@ -624,6 +548,9 @@ function EventRow({ item }: { item: EventItem }) {
                         <div className="flex items-center gap-3 md:col-span-2">
                             <Button type="submit" size="sm" disabled={processing}>
                                 Simpan
+                            </Button>
+                            <Button type="button" size="sm" variant="outline" onClick={onClose}>
+                                Batal
                             </Button>
                             <Button type="button" size="sm" variant="destructive" onClick={remove} className="ml-auto">
                                 <Trash2 className="h-4 w-4" /> Hapus
@@ -653,16 +580,43 @@ function EventRow({ item }: { item: EventItem }) {
                         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onPickFile} />
                     </div>
                 </div>
-            )}
 
-            <ImageCropperDialog
-                open={cropSrc !== null}
-                imageSrc={cropSrc}
-                aspect={16 / 9}
-                processing={uploading}
-                onClose={() => setCropSrc(null)}
-                onCropped={onCropped}
-            />
+                <ImageCropperDialog
+                    open={cropSrc !== null}
+                    imageSrc={cropSrc}
+                    aspect={16 / 9}
+                    processing={uploading}
+                    onClose={() => setCropSrc(null)}
+                    onCropped={onCropped}
+                />
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function EventRow({ item }: { item: EventItem }) {
+    const [editing, setEditing] = useState(false);
+
+    return (
+        <div className="px-4 py-3">
+            <div className="flex items-center gap-3">
+                {item.image_url ? (
+                    <img src={item.image_url} alt="" className="h-10 w-14 flex-shrink-0 rounded object-cover" />
+                ) : (
+                    <div className="bg-muted h-10 w-14 flex-shrink-0 rounded" />
+                )}
+                <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{item.title}</p>
+                    <p className="text-muted-foreground truncate text-xs">
+                        {formatEventSchedule(item)} · {formatEventTime(item)} · {item.category}
+                    </p>
+                </div>
+                <Button type="button" size="sm" variant="outline" onClick={() => setEditing(true)}>
+                    Edit
+                </Button>
+            </div>
+
+            {editing && <EditEventDialog item={item} onClose={() => setEditing(false)} />}
         </div>
     );
 }

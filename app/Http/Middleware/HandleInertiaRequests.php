@@ -42,6 +42,11 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+            ],
+            // Id of the row a store action just created (used to attach an image right after).
+            'createdId' => fn () => $request->session()->get('createdId'),
             'auth' => [
                 'user' => $request->user(),
                 // Leaf access keys (every key for admins) — drives sidebar/tab visibility.

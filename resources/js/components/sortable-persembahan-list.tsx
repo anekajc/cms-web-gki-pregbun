@@ -1,12 +1,13 @@
 import InputError from '@/components/input-error';
 import ImageCropperDialog from '@/components/kebaktian/image-cropper-dialog';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useForm, router } from '@inertiajs/react';
-import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { router, useForm } from '@inertiajs/react';
 import { GripVertical, ImagePlus, Trash2 } from 'lucide-react';
 import { ChangeEvent, FormEventHandler, useRef, useState } from 'react';
 
@@ -22,13 +23,7 @@ interface PersembahanItem {
     order: number;
 }
 
-export default function SortablePersembahanList({
-    items,
-    onReorder,
-}: {
-    items: PersembahanItem[];
-    onReorder: (ids: number[]) => void;
-}) {
+export default function SortablePersembahanList({ items, onReorder }: { items: PersembahanItem[]; onReorder: (ids: number[]) => void }) {
     const [localItems, setLocalItems] = useState(items);
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
@@ -68,7 +63,7 @@ export default function SortablePersembahanList({
 
 function SortableItem({ item }: { item: PersembahanItem }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
-    const [expanded, setExpanded] = useState(false);
+    const [editing, setEditing] = useState(false);
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -77,13 +72,13 @@ function SortableItem({ item }: { item: PersembahanItem }) {
     };
 
     return (
-        <div ref={setNodeRef} style={style} className="rounded-lg border bg-card">
+        <div ref={setNodeRef} style={style} className="bg-card rounded-lg border">
             <div className="flex items-center gap-3 p-3">
                 <button
                     type="button"
                     {...attributes}
                     {...listeners}
-                    className="cursor-grab touch-none text-muted-foreground hover:text-foreground"
+                    className="text-muted-foreground hover:text-foreground cursor-grab touch-none"
                     aria-label="Seret untuk urutkan"
                 >
                     <GripVertical className="h-4 w-4" />
@@ -92,28 +87,28 @@ function SortableItem({ item }: { item: PersembahanItem }) {
                 {item.qr_url ? (
                     <img src={item.qr_url} alt="" className="h-10 w-10 rounded object-contain" />
                 ) : (
-                    <div className="h-10 w-10 rounded bg-muted" />
+                    <div className="bg-muted h-10 w-10 rounded" />
                 )}
 
                 <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{item.title}</p>
-                    <p className="truncate text-xs text-muted-foreground">
+                    <p className="text-muted-foreground truncate text-xs">
                         {item.bank} {item.display_rekening}
                     </p>
                 </div>
 
-                <Button type="button" size="sm" variant="outline" onClick={() => setExpanded((v) => !v)}>
-                    {expanded ? 'Tutup' : 'Edit'}
+                <Button type="button" size="sm" variant="outline" onClick={() => setEditing(true)}>
+                    Edit
                 </Button>
             </div>
 
-            {expanded && <ItemEditor item={item} onClose={() => setExpanded(false)} />}
+            {editing && <ItemEditor item={item} onClose={() => setEditing(false)} />}
         </div>
     );
 }
 
 function ItemEditor({ item, onClose }: { item: PersembahanItem; onClose: () => void }) {
-    const { data, setData, put, processing, errors, recentlySuccessful } = useForm({
+    const { data, setData, put, processing, errors } = useForm({
         title: item.title,
         entity: item.entity,
         bank: item.bank,
@@ -127,7 +122,7 @@ function ItemEditor({ item, onClose }: { item: PersembahanItem; onClose: () => v
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        put(route('persembahan.update', item.id), { preserveScroll: true });
+        put(route('persembahan.update', item.id), { preserveScroll: true, onSuccess: onClose });
     };
 
     const onPickFile = (e: ChangeEvent<HTMLInputElement>) => {
@@ -159,91 +154,97 @@ function ItemEditor({ item, onClose }: { item: PersembahanItem; onClose: () => v
 
     const removeItem = () => {
         if (confirm(`Hapus item "${item.title}"? Tindakan ini tidak dapat dibatalkan.`)) {
-            router.delete(route('persembahan.destroy', item.id), { preserveScroll: true });
+            router.delete(route('persembahan.destroy', item.id), { preserveScroll: true, onSuccess: onClose });
         }
     };
 
     return (
-        <div className="border-t p-4">
-            <div className="grid gap-6 md:grid-cols-3">
-                <div className="space-y-3 md:col-span-2">
-                    <form onSubmit={submit} className="grid gap-3 md:grid-cols-2">
-                        <div className="grid gap-2">
-                            <Label htmlFor={`title_${item.id}`}>Judul</Label>
-                            <Input id={`title_${item.id}`} value={data.title} onChange={(e) => setData('title', e.target.value)} />
-                            <InputError message={errors.title} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor={`entity_${item.id}`}>Atas Nama</Label>
-                            <Input id={`entity_${item.id}`} value={data.entity} onChange={(e) => setData('entity', e.target.value)} />
-                            <InputError message={errors.entity} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor={`bank_${item.id}`}>Bank</Label>
-                            <Input id={`bank_${item.id}`} value={data.bank} onChange={(e) => setData('bank', e.target.value)} />
-                            <InputError message={errors.bank} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor={`rekening_${item.id}`}>No. Rekening (tanpa titik)</Label>
-                            <Input id={`rekening_${item.id}`} value={data.rekening} onChange={(e) => setData('rekening', e.target.value)} />
-                            <InputError message={errors.rekening} />
-                        </div>
-                        <div className="grid gap-2 md:col-span-2">
-                            <Label htmlFor={`display_rekening_${item.id}`}>No. Rekening (tampilan)</Label>
-                            <Input
-                                id={`display_rekening_${item.id}`}
-                                value={data.display_rekening}
-                                onChange={(e) => setData('display_rekening', e.target.value)}
-                            />
-                            <InputError message={errors.display_rekening} />
-                        </div>
+        <Dialog open onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+                <DialogHeader>
+                    <DialogTitle>Edit Item Persembahan</DialogTitle>
+                    <DialogDescription>{item.title}</DialogDescription>
+                </DialogHeader>
 
-                        <div className="flex flex-wrap items-center gap-3 md:col-span-2">
-                            <Button type="submit" size="sm" disabled={processing}>
-                                Simpan
-                            </Button>
-                            {recentlySuccessful && <span className="text-sm text-muted-foreground">Tersimpan</span>}
-                            <Button type="button" size="sm" variant="outline" onClick={onClose} className="sm:ml-auto">
-                                Tutup
-                            </Button>
-                            <Button type="button" size="sm" variant="destructive" onClick={removeItem}>
-                                <Trash2 className="h-4 w-4" /> Hapus Item
-                            </Button>
+                <div className="grid gap-6 md:grid-cols-3">
+                    <div className="space-y-3 md:col-span-2">
+                        <form onSubmit={submit} className="grid gap-3 md:grid-cols-2">
+                            <div className="grid gap-2">
+                                <Label htmlFor={`title_${item.id}`}>Judul</Label>
+                                <Input id={`title_${item.id}`} value={data.title} onChange={(e) => setData('title', e.target.value)} />
+                                <InputError message={errors.title} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor={`entity_${item.id}`}>Atas Nama</Label>
+                                <Input id={`entity_${item.id}`} value={data.entity} onChange={(e) => setData('entity', e.target.value)} />
+                                <InputError message={errors.entity} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor={`bank_${item.id}`}>Bank</Label>
+                                <Input id={`bank_${item.id}`} value={data.bank} onChange={(e) => setData('bank', e.target.value)} />
+                                <InputError message={errors.bank} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor={`rekening_${item.id}`}>No. Rekening (tanpa titik)</Label>
+                                <Input id={`rekening_${item.id}`} value={data.rekening} onChange={(e) => setData('rekening', e.target.value)} />
+                                <InputError message={errors.rekening} />
+                            </div>
+                            <div className="grid gap-2 md:col-span-2">
+                                <Label htmlFor={`display_rekening_${item.id}`}>No. Rekening (tampilan)</Label>
+                                <Input
+                                    id={`display_rekening_${item.id}`}
+                                    value={data.display_rekening}
+                                    onChange={(e) => setData('display_rekening', e.target.value)}
+                                />
+                                <InputError message={errors.display_rekening} />
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-3 md:col-span-2">
+                                <Button type="submit" size="sm" disabled={processing}>
+                                    Simpan
+                                </Button>
+                                <Button type="button" size="sm" variant="outline" onClick={onClose} className="sm:ml-auto">
+                                    Batal
+                                </Button>
+                                <Button type="button" size="sm" variant="destructive" onClick={removeItem}>
+                                    <Trash2 className="h-4 w-4" /> Hapus Item
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div className="space-y-3">
+                        <Label>QR Code</Label>
+                        <div className="bg-muted overflow-hidden rounded-lg border" style={{ aspectRatio: 1 }}>
+                            {item.qr_url ? (
+                                <img src={item.qr_url} alt="" className="h-full w-full object-contain" />
+                            ) : (
+                                <div className="text-muted-foreground flex h-full items-center justify-center text-xs">Belum ada QR</div>
+                            )}
                         </div>
-                    </form>
+                        <div className="flex gap-2">
+                            <Button type="button" size="sm" onClick={() => fileInputRef.current?.click()}>
+                                <ImagePlus className="h-4 w-4" /> {item.qr_url ? 'Ubah' : 'Tambah'}
+                            </Button>
+                            {item.qr_url && (
+                                <Button type="button" size="sm" variant="outline" onClick={removeQr}>
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            )}
+                        </div>
+                        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onPickFile} />
+                    </div>
                 </div>
 
-                <div className="space-y-3">
-                    <Label>QR Code</Label>
-                    <div className="overflow-hidden rounded-lg border bg-muted" style={{ aspectRatio: 1 }}>
-                        {item.qr_url ? (
-                            <img src={item.qr_url} alt="" className="h-full w-full object-contain" />
-                        ) : (
-                            <div className="flex h-full items-center justify-center text-xs text-muted-foreground">Belum ada QR</div>
-                        )}
-                    </div>
-                    <div className="flex gap-2">
-                        <Button type="button" size="sm" onClick={() => fileInputRef.current?.click()}>
-                            <ImagePlus className="h-4 w-4" /> {item.qr_url ? 'Ubah' : 'Tambah'}
-                        </Button>
-                        {item.qr_url && (
-                            <Button type="button" size="sm" variant="outline" onClick={removeQr}>
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        )}
-                    </div>
-                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onPickFile} />
-                </div>
-            </div>
-
-            <ImageCropperDialog
-                open={cropSrc !== null}
-                imageSrc={cropSrc}
-                aspect={1}
-                processing={uploading}
-                onClose={() => setCropSrc(null)}
-                onCropped={onCropped}
-            />
-        </div>
+                <ImageCropperDialog
+                    open={cropSrc !== null}
+                    imageSrc={cropSrc}
+                    aspect={1}
+                    processing={uploading}
+                    onClose={() => setCropSrc(null)}
+                    onCropped={onCropped}
+                />
+            </DialogContent>
+        </Dialog>
     );
 }
