@@ -29,6 +29,7 @@ interface Kebaktian {
     location: string | null;
     audience: string | null;
     youtube_url: string | null;
+    instagram_username: string | null;
     home_image_public_id: string | null;
     home_image_url: string | null;
     home_subtitle: string | null;
@@ -61,7 +62,7 @@ export default function KebaktianPage({ kebaktians, maxImages }: { kebaktians: K
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Ibadah</h1>
-                    <p className="text-sm text-muted-foreground">Kelola gambar dan informasi untuk tiap jenis ibadah.</p>
+                    <p className="text-muted-foreground text-sm">Kelola gambar dan informasi untuk tiap jenis ibadah.</p>
                 </div>
 
                 <div className="flex gap-1 overflow-x-auto border-b">
@@ -73,7 +74,7 @@ export default function KebaktianPage({ kebaktians, maxImages }: { kebaktians: K
                                 'shrink-0 border-b-2 px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors',
                                 activeSlug === t.slug
                                     ? 'border-primary text-foreground'
-                                    : 'border-transparent text-muted-foreground hover:text-foreground',
+                                    : 'text-muted-foreground hover:text-foreground border-transparent',
                             )}
                         >
                             {t.title}
@@ -97,7 +98,7 @@ function HomeViewEditor({ kebaktians }: { kebaktians: Kebaktian[] }) {
 
     return (
         <div className="space-y-6">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
                 Kelola gambar dan keterangan waktu yang tampil di halaman utama (Jadwal Ibadah). Judul kartu sudah tetap.
             </p>
 
@@ -158,14 +159,14 @@ function HomeCardEditor({ kebaktian, aspect, aspectLabel }: { kebaktian: Kebakti
             <CardContent className="space-y-4 p-4 sm:p-6">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <h3 className="font-semibold">{kebaktian.title}</h3>
-                    <span className="text-xs text-muted-foreground">Rasio {aspectLabel}</span>
+                    <span className="text-muted-foreground text-xs">Rasio {aspectLabel}</span>
                 </div>
 
-                <div className="overflow-hidden rounded-lg border bg-muted" style={{ aspectRatio: aspect }}>
+                <div className="bg-muted overflow-hidden rounded-lg border" style={{ aspectRatio: aspect }}>
                     {kebaktian.home_image_url ? (
                         <img src={kebaktian.home_image_url} alt="" className="h-full w-full object-cover" />
                     ) : (
-                        <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Belum ada gambar</div>
+                        <div className="text-muted-foreground flex h-full items-center justify-center text-sm">Belum ada gambar</div>
                     )}
                 </div>
 
@@ -195,7 +196,7 @@ function HomeCardEditor({ kebaktian, aspect, aspectLabel }: { kebaktian: Kebakti
                         <Button type="submit" size="sm" disabled={processing}>
                             Simpan
                         </Button>
-                        {recentlySuccessful && <span className="text-sm text-muted-foreground">Tersimpan</span>}
+                        {recentlySuccessful && <span className="text-muted-foreground text-sm">Tersimpan</span>}
                     </div>
                 </form>
 
@@ -265,31 +266,33 @@ function KebaktianEditor({ kebaktian, maxImages }: { kebaktian: Kebaktian; maxIm
 
     return (
         <div className="grid gap-6 lg:grid-cols-3">
-            <Card className="lg:col-span-2">
-                <CardContent className="space-y-4 p-4 sm:p-6">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                        <h2 className="font-semibold">
-                            Galeri Foto ({kebaktian.images.length}/{maxImages})
-                        </h2>
-                        <Button type="button" size="sm" disabled={atMax} onClick={() => fileInputRef.current?.click()}>
-                            <Plus className="h-4 w-4" /> Tambah Gambar
-                        </Button>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                        Seret untuk mengatur urutan. Gambar pertama menjadi foto utama. {atMax && 'Batas gambar tercapai.'}
-                    </p>
-
-                    {kebaktian.images.length > 0 ? (
-                        <SortableImageGrid images={kebaktian.images} onReorder={reorder} onDelete={deleteImage} aspect="16 / 9" />
-                    ) : (
-                        <div className="rounded-lg border border-dashed py-10 text-center text-sm text-muted-foreground">
-                            Belum ada gambar.
+            <div className="space-y-6 lg:col-span-2">
+                <Card>
+                    <CardContent className="space-y-4 p-4 sm:p-6">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                            <h2 className="font-semibold">
+                                Galeri Foto ({kebaktian.images.length}/{maxImages})
+                            </h2>
+                            <Button type="button" size="sm" disabled={atMax} onClick={() => fileInputRef.current?.click()}>
+                                <Plus className="h-4 w-4" /> Tambah Gambar
+                            </Button>
                         </div>
-                    )}
+                        <p className="text-muted-foreground text-sm">
+                            Seret untuk mengatur urutan. Gambar pertama menjadi foto utama. {atMax && 'Batas gambar tercapai.'}
+                        </p>
 
-                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onPickFile} />
-                </CardContent>
-            </Card>
+                        {kebaktian.images.length > 0 ? (
+                            <SortableImageGrid images={kebaktian.images} onReorder={reorder} onDelete={deleteImage} aspect="16 / 9" />
+                        ) : (
+                            <div className="text-muted-foreground rounded-lg border border-dashed py-10 text-center text-sm">Belum ada gambar.</div>
+                        )}
+
+                        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onPickFile} />
+                    </CardContent>
+                </Card>
+
+                <InstagramEditor key={kebaktian.id} kebaktian={kebaktian} />
+            </div>
 
             <Card>
                 <CardContent className="p-4 sm:p-6">
@@ -301,7 +304,7 @@ function KebaktianEditor({ kebaktian, maxImages }: { kebaktian: Kebaktian; maxIm
                                 rows={4}
                                 value={data.description}
                                 onChange={(e) => setData('description', e.target.value)}
-                                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden"
+                                className="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring flex w-full rounded-md border px-3 py-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:outline-hidden"
                             />
                             <InputError message={errors.description} />
                         </div>
@@ -324,7 +327,12 @@ function KebaktianEditor({ kebaktian, maxImages }: { kebaktian: Kebaktian; maxIm
                                         variant="outline"
                                         size="icon"
                                         aria-label="Hapus jadwal"
-                                        onClick={() => setData('schedules', data.schedules.filter((_, i) => i !== index))}
+                                        onClick={() =>
+                                            setData(
+                                                'schedules',
+                                                data.schedules.filter((_, i) => i !== index),
+                                            )
+                                        }
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
@@ -363,7 +371,7 @@ function KebaktianEditor({ kebaktian, maxImages }: { kebaktian: Kebaktian; maxIm
                                 onChange={(e) => setData('youtube_url', e.target.value)}
                             />
                             <InputError message={errors.youtube_url} />
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-muted-foreground text-xs">
                                 Ditampilkan di situs publik hanya bila diisi (mis. Kebaktian Umum & Pemuda).
                             </p>
                         </div>
@@ -372,7 +380,7 @@ function KebaktianEditor({ kebaktian, maxImages }: { kebaktian: Kebaktian; maxIm
                             <Button type="submit" disabled={processing}>
                                 Simpan Informasi
                             </Button>
-                            {recentlySuccessful && <span className="text-sm text-muted-foreground">Tersimpan</span>}
+                            {recentlySuccessful && <span className="text-muted-foreground text-sm">Tersimpan</span>}
                         </div>
                     </form>
                 </CardContent>
@@ -387,5 +395,49 @@ function KebaktianEditor({ kebaktian, maxImages }: { kebaktian: Kebaktian; maxIm
                 onCropped={onCropped}
             />
         </div>
+    );
+}
+
+function InstagramEditor({ kebaktian }: { kebaktian: Kebaktian }) {
+    const { data, setData, put, processing, errors, recentlySuccessful } = useForm({
+        instagram_username: kebaktian.instagram_username ?? '',
+    });
+
+    const submit: FormEventHandler = (e) => {
+        e.preventDefault();
+        put(route('kebaktian.update', kebaktian.id), { preserveScroll: true });
+    };
+
+    return (
+        <Card>
+            <CardContent className="space-y-4 p-4 sm:p-6">
+                <div>
+                    <h2 className="font-semibold">Instagram</h2>
+                    <p className="text-muted-foreground text-sm">Akun Instagram yang ditampilkan di situs publik. Kosongkan bila tidak ada.</p>
+                </div>
+
+                <form onSubmit={submit} className="space-y-2">
+                    <Label htmlFor={`instagram_username_${kebaktian.id}`}>Username Instagram</Label>
+                    <div className="relative">
+                        <span className="text-muted-foreground pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm">@</span>
+                        <Input
+                            id={`instagram_username_${kebaktian.id}`}
+                            className="pl-7"
+                            placeholder="gkipregolanbunder"
+                            autoComplete="off"
+                            value={data.instagram_username}
+                            onChange={(e) => setData('instagram_username', e.target.value.replace(/^@+/, ''))}
+                        />
+                    </div>
+                    <InputError message={errors.instagram_username} />
+                    <div className="flex items-center gap-3 pt-1">
+                        <Button type="submit" size="sm" disabled={processing}>
+                            Simpan
+                        </Button>
+                        {recentlySuccessful && <span className="text-muted-foreground text-sm">Tersimpan</span>}
+                    </div>
+                </form>
+            </CardContent>
+        </Card>
     );
 }
