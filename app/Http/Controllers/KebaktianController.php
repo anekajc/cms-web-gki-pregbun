@@ -25,6 +25,13 @@ class KebaktianController extends Controller
     {
         Access::ensure("ibadah.kebaktian.{$kebaktian->id}");
 
+        // The Instagram card submits on its own, so only touch the field when sent.
+        if ($request->has('instagram_username')) {
+            $request->merge([
+                'instagram_username' => ltrim(trim((string) $request->input('instagram_username')), '@') ?: null,
+            ]);
+        }
+
         $validated = $request->validate([
             'description' => 'nullable|string',
             'schedules' => 'nullable|array',
@@ -32,6 +39,10 @@ class KebaktianController extends Controller
             'location' => 'nullable|string|max:255',
             'audience' => 'nullable|string|max:255',
             'youtube_url' => 'nullable|url|max:255',
+            'instagram_username' => ['nullable', 'string', 'max:30', 'regex:/^[A-Za-z0-9._]+$/'],
+        ], [
+            'instagram_username.regex' => 'Username Instagram hanya boleh berisi huruf, angka, titik, dan garis bawah.',
+            'instagram_username.max' => 'Username Instagram maksimal 30 karakter.',
         ]);
 
         $kebaktian->update($validated);
