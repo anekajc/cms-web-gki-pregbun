@@ -79,6 +79,12 @@ class ActivityActions
         'persembahan.hero-image.store' => ['persembahan', 'Mengganti gambar hero persembahan'],
         'persembahan.hero-image.destroy' => ['persembahan', 'Menghapus gambar hero persembahan'],
 
+        // Bidang Pelayanan
+        'bidang-pelayanan.store' => ['bidangpelayanan', 'Menambah bidang pelayanan'],
+        'bidang-pelayanan.update' => ['bidangpelayanan', 'Mengubah bidang pelayanan'],
+        'bidang-pelayanan.reorder' => ['bidangpelayanan', 'Mengubah urutan bidang pelayanan'],
+        'bidang-pelayanan.destroy' => ['bidangpelayanan', 'Menghapus bidang pelayanan'],
+
         // Master
         'master.pelayanan.store' => ['master', 'Menambah pelayanan (master)'],
         'master.pelayanan.update' => ['master', 'Mengubah nama pelayanan (master)'],
