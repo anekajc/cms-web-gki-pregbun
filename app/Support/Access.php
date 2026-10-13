@@ -12,7 +12,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
  *
  * Every page is a parent key ("dashboard"); its sections are leaf keys
  * ("dashboard.warta"). Only leaf keys are stored in user_permissions — a page
- * with no sections (Tentang Kami, Komisi) is its own leaf. Route gates check a
+ * with no sections (Tentang Kami, Komisi, Bidang Pelayanan) is its own leaf. Route gates check a
  * prefix via User::canAccessAny(), so "access:dashboard" means "any section".
  */
 class Access
@@ -51,6 +51,7 @@ class Access
             'persembahan.item' => 'Daftar Item',
             'persembahan.pembangunan' => 'Pembangunan',
         ]],
+        'bidangpelayanan' => ['Bidang Pelayanan', 'bidang-pelayanan', []],
         'master' => ['Master', 'master.pelayanan', [
             'master.pelayanan' => 'Pelayanan',
         ]],

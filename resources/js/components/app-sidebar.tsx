@@ -8,6 +8,7 @@ import {
     Building2,
     CalendarArrowUp,
     Church,
+    Contact,
     Database,
     Hammer,
     HandCoins,
@@ -68,12 +69,6 @@ const mainNavItems: NavItem[] = [
         icon: Building2,
     },
     {
-        title: 'Komisi',
-        url: '/komisi',
-        access: 'komisi',
-        icon: List,
-    },
-    {
         title: 'Pembangunan',
         url: '/pembangunan',
         access: 'pembangunan',
@@ -84,6 +79,18 @@ const mainNavItems: NavItem[] = [
         url: '/persembahan',
         access: 'persembahan',
         icon: HandCoins,
+    },
+    {
+        title: 'Bidang Pelayanan',
+        url: '/bidang-pelayanan',
+        access: 'bidangpelayanan',
+        icon: Contact,
+    },
+    {
+        title: 'Komisi',
+        url: '/komisi',
+        access: 'komisi',
+        icon: List,
     },
     // {
     //     title: 'Dummy',
